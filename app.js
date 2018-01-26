@@ -473,6 +473,52 @@ router.get('/init', async (ctx, next) => {
     };
 });
 
+////////////登陆
+router.post('/updateCase', async (ctx, next) => {
+    /*var name = ctx.request.body.name;
+    var password = ctx.request.body.password;*/
+    var data =ctx.request.body;
+    console.log(data[0])
+    return false;
+    var status = 1,
+        result = "";
+
+    let p1 = function(){
+        return new Promise(function(resolve, reject) {
+            /////查询是否已经占用了用户名
+            User.findOne({name: name}, function(err, user){
+                if(err){ console.log(err); resolve({status: -404, result: '数据库查询错误'}); }
+                if(user){
+                    user.comparePassword(password, function(err, isMatch){
+                        if(err) console.log(err);
+                        let temp;
+                        //判断密码是否相等
+                        if(isMatch){
+                            temp = {status: 1, result: "登陆成功！"};
+                            ////////设置session
+                            console.log('session' + JSON.stringify(ctx));
+                            //ctx.req.session.name = name;
+                        }else{
+                            temp = {status: -10, result: "密码错误"};
+                        }
+                        resolve(temp);
+                    })
+                }else{
+                    resolve({status: -11, result: "该用户未注册"});
+                }
+            })
+        })
+    }
+    let _result = await p1();
+    console.log(_result);
+    //返回修改后的数组
+    //ctx.response.setHeader("Access-Control-Allow-Credentials","true");
+    ctx.body = {
+        status: _result.status,
+        data: _result.result
+    };
+});
+
 // 在端口3000监听:
 app.listen(3888);
 
