@@ -79,7 +79,7 @@ const rules = {
 		},
 		info: {
 			url: (ops)=>{
-				return `https://book.qidian.com/info/${ops.bid}`;
+				return `https://book.qidian.com/info/${ops.qidianid}`;
 			},
 			domRules: {
 				id: {
@@ -128,7 +128,7 @@ const rules = {
 		//评论
 		comment: {
 			url: (ops)=>{
-				return `https://book.qidian.com/ajax/comment/index?_csrfToken=V48ubGHTlhHhDN2Ax1XPTsK3oNbDAZRcKGESAwZb&bookId=${ops.bid}&pageSize=20`;
+				return `https://book.qidian.com/ajax/comment/index?_csrfToken=V48ubGHTlhHhDN2Ax1XPTsK3oNbDAZRcKGESAwZb&bookId=${ops.qidianid}&pageSize=20`;
 			},
 			domRules: {
 				//threadList,threadCnt
@@ -137,7 +137,7 @@ const rules = {
 		//讨论
 		thread: {
 			url: (ops)=>{
-				return `https://book.qidian.com/ajax/book/GetBookForum?_csrfToken=V48ubGHTlhHhDN2Ax1XPTsK3oNbDAZRcKGESAwZb&authorId=${ops.authorId}&bookId=${ops.bid}&chanId=21&pageSize=20`;
+				return `https://book.qidian.com/ajax/book/GetBookForum?_csrfToken=V48ubGHTlhHhDN2Ax1XPTsK3oNbDAZRcKGESAwZb&authorId=${ops.authorId}&bookId=${ops.qidianid}&chanId=21&pageSize=20`;
 			},
 			domRules: {
 			}
@@ -153,7 +153,7 @@ const rules = {
 		//章节列表
 		list: {
 			url: (ops)=>{
-				return `https://book.qidian.com/ajax/book/category?_csrfToken=V48ubGHTlhHhDN2Ax1XPTsK3oNbDAZRcKGESAwZb&bookId=${ops.bid}`;
+				return `https://book.qidian.com/ajax/book/category?_csrfToken=V48ubGHTlhHhDN2Ax1XPTsK3oNbDAZRcKGESAwZb&bookId=${ops.qidianid}`;
 			},
 			/////起点列表使用接口，所以dom规则不需要
 			domRules: {

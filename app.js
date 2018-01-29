@@ -42,7 +42,7 @@ app.use(session({
 ///路由
 // add url-route:
 router.get('/index', async (ctx, next) => {
-    var bid = ctx.request.query.bid;
+    var qidianid = ctx.request.query.qidianid;
     var authorId = ctx.request.query.authorId;
     
 });
@@ -82,13 +82,13 @@ router.get('/searchOneBook', async (ctx, next) => {
 ////////从起点获取详细的小说信息，包含起点小说列表，小说评论
 router.get('/getBookInfo', async (ctx, next) => {
     //var keys = escape(ctx.request.body.val);
-    var bid = ctx.request.query.id;
+    var qidianid = ctx.request.query.qidianid;
     var authorId = ctx.request.query.authorId;
     
     let data = {};
     //获取小说详细信息
     let nowBook = await GetBooks.getBookinfo({
-        ops: {authorId: authorId, bid: bid, sourceType: "qidian"},
+        ops: {authorId: authorId, qidianid: qidianid, sourceType: "qidian"},
         headers: {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36", "Content-Type": "text/html; charset=utf8"}
     });
     //////只要需要两次请求的才需要判断第一个请求 来中断后续请求
@@ -102,7 +102,7 @@ router.get('/getBookInfo', async (ctx, next) => {
     
     //获取小说其他书籍
     let otherBook = await GetBooks.getOtherBook({
-        ops: {authorId: authorId, bid: bid, sourceType: "qidian"},
+        ops: {authorId: authorId, qidianid: qidianid, sourceType: "qidian"},
         headers: {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36", "Content-Type": "text/html; charset=utf8"}
     });
 
@@ -118,7 +118,7 @@ router.get('/getBookInfo', async (ctx, next) => {
 
 ///获取小说的文章列表，包含切换起点时，也会重新搜索，
 router.get('/getBookList', async (ctx, next) => {
-    let id = ctx.request.query.id;
+    let qidianid = ctx.request.query.qidianid;
     let name = ctx.request.query.name;
     let author = ctx.request.query.author;
     let sourceType = ctx.request.query.sourceType;
@@ -147,7 +147,7 @@ router.get('/getBookList', async (ctx, next) => {
 
     ////后获取小说列表
     let list = await GetBooks.getBookList({
-        ops: {bid: id, link: search.result, sourceType: sourceType},
+        ops: {qidianid: qidianid, link: search.result, sourceType: sourceType},
         headers: {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36", "Content-Type": 'text/html; charset='+ search.charset},
         charset: search.charset
     });
@@ -305,6 +305,7 @@ router.get('/getClfBookList', async (ctx, next) => {
 ////////////更新书架
 router.post('/updataBookList', async (ctx, next) => {
     let ids = (ctx.request.body.ids).split(','),
+        qidianids = (ctx.request.body.qidianids).split(','),
         names = (ctx.request.body.names).split(','),
         listLinks = (ctx.request.body.listLinks).split(','),
         sourceTypes = (ctx.request.body.sourceTypes).split(','),
@@ -316,7 +317,7 @@ router.post('/updataBookList', async (ctx, next) => {
     for(var i = 0; i<ids.length;i++){
         ////后获取小说列表
         let list = GetBooks.getBookList({
-            ops: {bid: ids[i], link: decodeURIComponent(listLinks[i]), sourceType: sourceTypes[i]},
+            ops: {bid: ids[i], qidianid: qidianids[i], link: decodeURIComponent(listLinks[i]), sourceType: sourceTypes[i]},
             headers: {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36", "Content-Type": 'text/html; charset='+ charsets[i]},
             charset: charsets[i]
         });
@@ -329,11 +330,13 @@ router.post('/updataBookList', async (ctx, next) => {
         let l_result = results[0],
             s_result = results[1];
 
-        l_result.result.fid = parseInt(ids[i]);
+        l_result.result.bid = parseInt(ids[i]);
         if(s_result.status==1){
             l_result.result.nowPage = s_result.result[0].nowPage;
             l_result.result.nowTime = s_result.result[0].nowTime;
             l_result.result.pageNumbe = s_result.result[0].pageNumbe;
+            console.log(l_result.result.pageList)
+            l_result.result.ptotal = l_result.result.pageList.length;
         };
         ////判断两个接口的状态值，搜索失败，则使用100
         l_result.status = l_result.status==1? (s_result.status==1? 1: 100):  l_result.status;
@@ -432,7 +435,7 @@ router.post('/login', async (ctx, next) => {
 });
 ////////////获取登陆状态，获取初始化数据
 router.get('/init', async (ctx, next) => {
-    let id = ctx.request.query.id;
+    //let id = ctx.request.query.id;
 
     var status = 1,
         result = "";
@@ -473,38 +476,78 @@ router.get('/init', async (ctx, next) => {
     };
 });
 
-////////////登陆
+////////////上传
 router.post('/updateCase', async (ctx, next) => {
     /*var name = ctx.request.body.name;
     var password = ctx.request.body.password;*/
     var data =ctx.request.body;
-    console.log(data[0])
-    return false;
+
     var status = 1,
         result = "";
 
-    let p1 = function(){
+    let p1 = function(data){
+        let _case = new Case({
+            bid: data.bid,
+            qidianid: data.qidianid,
+            btype: data.btype,
+            name: data.name,
+            link: data.link,
+            introduce: data.introduce,
+            imgUrl: data.imgUrl,
+            author: data.author,
+            authorId: data.authorId,
+            charset: data.charset,
+            sourceType: data.sourceType,
+            sourceTypeName: data.sourceTypeName
+        });
         return new Promise(function(resolve, reject) {
             /////查询是否已经占用了用户名
-            User.findOne({name: name}, function(err, user){
+            Case.findOne({bid: data.bid}, function(err, dd){
                 if(err){ console.log(err); resolve({status: -404, result: '数据库查询错误'}); }
-                if(user){
-                    user.comparePassword(password, function(err, isMatch){
-                        if(err) console.log(err);
-                        let temp;
-                        //判断密码是否相等
-                        if(isMatch){
-                            temp = {status: 1, result: "登陆成功！"};
-                            ////////设置session
-                            console.log('session' + JSON.stringify(ctx));
-                            //ctx.req.session.name = name;
-                        }else{
-                            temp = {status: -10, result: "密码错误"};
-                        }
-                        resolve(temp);
+                if(!!!dd){//未查到
+                    _case.save(function(err, dd){
+                        if(err){ console.log(err); resolve({status: -404, result: '数据库查询错误'}); }
+                        resolve({status: 1, result: "添加成功"});
                     })
                 }else{
-                    resolve({status: -11, result: "该用户未注册"});
+                    //resolve({status: -12, result: "用户名已经被注册了！"});
+                    resolve({status: 1, result: "已经存在"});
+                }
+            })
+        })
+    }
+
+    let _result = {status: 1, result: '上传成功！'};
+    for(let x in data){
+        let tmps = await p1(data[x]);
+        if(tmps.status != 1) _result.result = '上传失败！';
+    }
+    
+    console.log(_result);
+    //返回修改后的数组
+    //ctx.response.setHeader("Access-Control-Allow-Credentials","true");
+    ctx.body = {
+        status: _result.status,
+        data: _result.result
+    };
+});
+
+////////////云端下载
+router.get('/dldateCase', async (ctx, next) => {
+    let uid = ctx.request.query.uid;
+
+    let p1 = function(){
+        return new Promise(function(resolve, reject) {
+            //console.log(Case.find());
+            /////查询是否已经占用了用户名
+            Case.find(function(err, result){
+                if(err){ console.log(err); resolve({status: -404, result: '数据库查询错误'}); }
+                if(result){
+                    console.log('书架'+result);
+                    temp = {status: 1, result: result};
+                    resolve(temp);
+                }else{
+                    resolve({status: -11, result: "未查到数据"});
                 }
             })
         })
@@ -517,6 +560,7 @@ router.post('/updateCase', async (ctx, next) => {
         status: _result.status,
         data: _result.result
     };
+    
 });
 
 // 在端口3000监听:
