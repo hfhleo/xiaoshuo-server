@@ -133,7 +133,6 @@ const anaBookinfo = async (html, type)=> {
 
 	    $(listdomRules.lists).each(function(i, elem) {
 	        var volume = $(elem).find(listdomRules.sublists);
-	        console.log(volume)
 	        volume.each(function(j, ele){
 	            cut++;
 	            qidianPageList.push({
@@ -310,7 +309,6 @@ const anaBookDetail = async (html, type)=> {
 const anaHotList = async (html, souceType, type)=> {
 
 	$ = cheerio.load(html, {decodeEntities: false});
-		console.log('强推的'+type)
         var bookList = [];
         if(type=="index"){
 	        $('.index-two-wrap .book-list-wrap.mr30 .book-list li').map(function() {
@@ -343,7 +341,6 @@ const anaHotList = async (html, souceType, type)=> {
 		            })
     			})
     		});
-    		console.log(bookList)
     	}
     let status = bookList.length>0? 1: -2;
     return {status: status, data: bookList}
@@ -456,7 +453,6 @@ const anaClfBookList = async (html, souceType)=> {
 
     /////////判断解析规则
     var domRules = Rules.qidian.search.domRules;
-    console.log(html);
     //起点默认utf8
     var charset = "utf8";
     var result = [];

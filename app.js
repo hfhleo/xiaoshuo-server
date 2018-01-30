@@ -34,18 +34,34 @@ app.use(bodyParser());
 app.use(router.routes());
 //添加session
 //const Store = require("./models/Store");
-app.use(session({
+router.use(session({
     key: "SESSIONID",   //default "koa:sess"
     //store: new Store()    //不使用redis
 }));
 
 ///路由
 // add url-route:
-router.get('/index', async (ctx, next) => {
-    var qidianid = ctx.request.query.qidianid;
-    var authorId = ctx.request.query.authorId;
+router.get('/', async (ctx, next) => {
+    console.log(ctx.request);
     
 });
+
+////////////获取登陆状态，获取初始化数据
+router.get('/init', async (ctx, next) => {
+    //let id = ctx.request.query.id;
+
+    var status = 1,
+        result = "";
+    console.log(ctx.cookie)
+    
+    //返回修改后的数组
+    //ctx.response.setHeader("Access-Control-Allow-Credentials","true");
+    ctx.body = {
+        status: status,
+        data: result
+    };
+});
+
 
 /*************** 搜索小说 *******************/
 router.get('/searchBook', async (ctx, next) => {
@@ -167,9 +183,6 @@ router.get('/getBookDetails', async (ctx, next) => {
     //通过第一步搜搜拿到字符集
     var charset = ctx.request.query.charset;
 
-    console.log(link)
-    console.log(charset)
-
     let detail = await GetBooks.getBookDetail({
         ops: {name: name, link: link, sourceType: sourceType},
         headers: {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36", "Content-Type": "text/html; charset=utf8"},
@@ -214,7 +227,6 @@ router.post('/getBookAllDetails', async (ctx, next) => {
         status = detail.status;
         result[i] = detail.result;
     }
-    console.log('下载的内容'+ result)
     //返回修改后的数组
     ctx.body = {
         status: status,
@@ -294,7 +306,6 @@ router.get('/getClfBookList', async (ctx, next) => {
         headers: {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36", "Content-Type": "text/html; charset=utf8"},
         charset: 'utf8'
     });
-    console.log(list);
     
     ctx.body = {
         status: list.status,
@@ -335,7 +346,6 @@ router.post('/updataBookList', async (ctx, next) => {
             l_result.result.nowPage = s_result.result[0].nowPage;
             l_result.result.nowTime = s_result.result[0].nowTime;
             l_result.result.pageNumbe = s_result.result[0].pageNumbe;
-            console.log(l_result.result.pageList)
             l_result.result.ptotal = l_result.result.pageList.length;
         };
         ////判断两个接口的状态值，搜索失败，则使用100
@@ -370,14 +380,14 @@ router.post('/register', async (ctx, next) => {
         return new Promise(function(resolve, reject) {
             /////查询是否已经占用了用户名
             User.findOne({name: name}, function(err, dd){
-                if(err){ console.log(err); resolve({status: -404, result: '数据库查询错误'}); }
+                if(err){ console.log(err); resolve({status: 1, result: {code: -404, msg: "数据库查询错误"}}); }
                 if(!!!dd){//未查到
                     user.save(function(err, dd){
-                        if(err){ console.log(err); resolve({status: -404, result: '数据库查询错误'}); }
-                        resolve({status: 1, result: "注册成功！"});
+                        if(err){ console.log(err); resolve({status: 1, result: {code: -404, msg: "数据库保存错误"}}); }
+                        resolve({status: 1, result: {code: 1, msg: "注册成功！"}});
                     })
                 }else{
-                    resolve({status: -12, result: "用户名已经被注册了！"});
+                    resolve({status: 1, result: {code: -12, msg: "用户名已经被注册了！"}});
                 }
             })
         })
@@ -402,29 +412,31 @@ router.post('/login', async (ctx, next) => {
         return new Promise(function(resolve, reject) {
             /////查询是否已经占用了用户名
             User.findOne({name: name}, function(err, user){
-                if(err){ console.log(err); resolve({status: -404, result: '数据库查询错误'}); }
+                if(err){ console.log(err); resolve({status: 1, result: {code: -404, msg: "数据库查询错误"}}); }
                 if(user){
                     user.comparePassword(password, function(err, isMatch){
                         if(err) console.log(err);
                         let temp;
                         //判断密码是否相等
                         if(isMatch){
-                            temp = {status: 1, result: "登陆成功！"};
                             ////////设置session
-                            console.log('session' + JSON.stringify(ctx));
-                            //ctx.req.session.name = name;
+                            ctx.session.user = name;
+                            console.log(JSON.stringify(ctx.session))
+
+                            temp = {status: 1, result: {code: 1, msg: "登陆成功！"}};
                         }else{
-                            temp = {status: -10, result: "密码错误"};
+                            temp = {status: 1, result: {code: -10, msg: "密码错误"}};
                         }
                         resolve(temp);
                     })
                 }else{
-                    resolve({status: -11, result: "该用户未注册"});
+                    resolve({status: 1, result: {code: -11, msg: "该用户未注册"}});
                 }
             })
         })
     }
     let _result = await p1();
+    
     console.log(_result);
     //返回修改后的数组
     //ctx.response.setHeader("Access-Control-Allow-Credentials","true");
@@ -433,46 +445,19 @@ router.post('/login', async (ctx, next) => {
         data: _result.result
     };
 });
-////////////获取登陆状态，获取初始化数据
-router.get('/init', async (ctx, next) => {
-    //let id = ctx.request.query.id;
+////////////登陆
+router.post('/loginOut', async (ctx, next) => {
+    var name = ctx.request.body.name;
 
     var status = 1,
-        result = "";
+        result = {code: 1, msg: '退出成功！'};
 
-    let p1 = function(){
-        return new Promise(function(resolve, reject) {
-            /////查询是否已经占用了用户名
-            User.findOne({name: name}, function(err, user){
-                if(err){ console.log(err); resolve({status: -404, result: '数据库查询错误'}); }
-                if(user){
-                    user.comparePassword(password, function(err, isMatch){
-                        if(err) console.log(err);
-                        let temp;
-                        //判断密码是否相等
-                        if(isMatch){
-                            temp = {status: 1, result: "登陆成功！"};
-                            ////////设置session
-                            console.log('session' + JSON.stringify(ctx));
-                            //ctx.req.session.name = name;
-                        }else{
-                            temp = {status: -10, result: "密码错误"};
-                        }
-                        resolve(temp);
-                    })
-                }else{
-                    resolve({status: -11, result: "该用户未注册"});
-                }
-            })
-        })
-    }
-    let _result = await p1();
-    console.log(_result);
+    ctx.session.user = null;
     //返回修改后的数组
     //ctx.response.setHeader("Access-Control-Allow-Credentials","true");
     ctx.body = {
-        status: _result.status,
-        data: _result.result
+        status: status,
+        data: result
     };
 });
 
@@ -498,7 +483,8 @@ router.post('/updateCase', async (ctx, next) => {
             authorId: data.authorId,
             charset: data.charset,
             sourceType: data.sourceType,
-            sourceTypeName: data.sourceTypeName
+            sourceTypeName: data.sourceTypeName,
+            readTime: data.readTime
         });
         return new Promise(function(resolve, reject) {
             /////查询是否已经占用了用户名
@@ -522,8 +508,7 @@ router.post('/updateCase', async (ctx, next) => {
         let tmps = await p1(data[x]);
         if(tmps.status != 1) _result.result = '上传失败！';
     }
-    
-    console.log(_result);
+    console.log(_result)
     //返回修改后的数组
     //ctx.response.setHeader("Access-Control-Allow-Credentials","true");
     ctx.body = {
@@ -543,7 +528,6 @@ router.get('/dldateCase', async (ctx, next) => {
             Case.find(function(err, result){
                 if(err){ console.log(err); resolve({status: -404, result: '数据库查询错误'}); }
                 if(result){
-                    console.log('书架'+result);
                     temp = {status: 1, result: result};
                     resolve(temp);
                 }else{

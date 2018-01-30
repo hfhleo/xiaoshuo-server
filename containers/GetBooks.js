@@ -91,10 +91,6 @@ const searchBook = async (option)=> {
             charset = !!Rules[key].search.domRules.charset.value? Rules[key].search.domRules.charset.value: "utf8";
         };
     };
-    console.log('搜索的'+ JSON.stringify(headers))
-    console.log('搜索的'+ url)
-    console.log('搜索的'+ formData)
-    console.log('搜索的charset'+ charset)
     let p1 = function(){
         return new Promise(function(resolve, reject) {
             request(method, url).send(formData).set(headers).charset(charset).end(function(err, res){
@@ -123,7 +119,6 @@ const searchBook = async (option)=> {
             result: []
         }
     }
-    console.log(reptile.text)
     //解析抓取内容
     let result = await Analysis.anaSearch(reptile.text, ops.sourceType, ops.name);
 
@@ -343,7 +338,6 @@ const getHotList = async (option)=> {
             result: []
         }
     }
-    console.log(reptile.text)
     let result = await Analysis.anaHotList(reptile.text, option.ops.sourceType, option.ops.type);
         
         return {

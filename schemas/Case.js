@@ -15,6 +15,8 @@ var CaseSchema = new mongoose.Schema({
 	charset: String,
 	sourceType: String,
 	sourceTypeName: String,
+	readTime: String,
+	addTime: String,
 	//isNew： 
 	meta:{
 		createAt:{
