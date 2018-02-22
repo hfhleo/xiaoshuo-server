@@ -896,6 +896,75 @@ const rules = {
 				}
 			}
 		}
+	},
+	fkzww: {
+		name: '疯狂中文网',
+		search: {
+			method: "POST",
+			formData: (ops)=>{
+				//快速搜索
+				return {SearchKey: ops.name, SearchClass: 1, button: "%BF%EC%CB%D9%CB%D1%CB%F7", }
+			},
+			url: (ops)=>{
+				return `http://www.fkzww.com/Book/Search.aspx`;
+			},
+			encodeURI: false,
+			encodeURI_GBK: true,
+			headers: {},
+			domRules: {
+				link: {
+					dom: "#Content #CListTitle",
+					action: 'eq(0).find("a").last().attr("href")',
+					prefix: ""
+				},
+				charset: {
+					value: 'gbk',
+					dom: "meta[http-equiv='Content-Type']",
+					action: 'attr("content").split("charset=")[1]'
+				}
+			}
+		},
+		list: {
+			url: (ops)=>{
+				return `http://www.fkzww.com/Html/Book/8/24599/List.shtml`;
+			},
+			domRules: {
+				//结果列表
+				lists: {
+					dom: ".readerListBody #at tr",
+					action: 'eq(0).nextAll()'
+				},
+				sublists: "",
+				//name
+				name: {
+					dom: "a",
+					action: "text()"
+				},
+				info: {
+					dom: "a",
+					action: 'text()'
+				},
+				link: {
+					dom: "a",
+					action: 'attr("href")',
+					prefix: "listlink"
+				},
+				isvip: {
+					dom: "a",
+					//第三方都是非会员
+					action: 'length-1'
+				}
+			}
+		},
+		detail: {
+			domRules: {
+				//结果列表
+				content: {
+					dom: "#contents",
+					action: 'text()'
+				}
+			}
+		}
 	}
 }
 

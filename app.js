@@ -2,7 +2,7 @@
 const Koa = require('koa');
 //import session from "koa2-cookie-session";
 const session = require("koa-session2");
-
+//const session = require("koa-session");
 // 注意require('koa-router')返回的是函数:
 const router = require('koa-router')();
 
@@ -14,14 +14,18 @@ const bodyParser = require('koa-bodyparser');
 const http = require("http")
 const zlib = require("zlib");
 const fs = require("fs")
+const md5 = require("md5")
 
-const mongoose = require('./containers/mongoose_connect');
+const mongoose_connect = require('./containers/mongoose_connect');
 
 const User = require('./schemas/User')
 const Case = require('./schemas/Case')
+const Link = require('./schemas/Link')
+//const SessionStore = require('./schemas/SessionStore')
 
 /////////分离出去抓取请求
 const GetBooks = require('./containers/GetBooks');
+const Settings = require('./settings/Settings');
 
 
 // 创建一个Koa对象表示web app本身:
@@ -35,25 +39,34 @@ app.use(router.routes());
 //添加session
 //const Store = require("./models/Store");
 router.use(session({
-    key: "SESSIONID",   //default "koa:sess"
-    //store: new Store()    //不使用redis
+    key: "XIAOSHUO_SESSIONID",   //default "koa:sess"
+    maxAge: 24*60*60*1000, //24小时
+    //store: new SessionStore(),
 }));
 
 ///路由
 // add url-route:
-router.get('/', async (ctx, next) => {
-    console.log(ctx.request);
-    
-});
 
 ////////////获取登陆状态，获取初始化数据
 router.get('/init', async (ctx, next) => {
     //let id = ctx.request.query.id;
 
     var status = 1,
-        result = "";
-    console.log(ctx.cookie)
-    
+        result = {};
+    let cookie_token = ctx.cookies.get("token");
+    let cookie_uname = ctx.cookies.get("uname");
+    let cookie_uimg = ctx.cookies.get("uimg");
+    console.log('客户端的token'+cookie_token);
+    console.log('客户端的uname'+cookie_uname);
+    console.log('服务器的session'+JSON.stringify(ctx.session))
+
+    /////判断是否登陆
+    if(!!ctx.session.token && cookie_token==ctx.session.token){
+        result = {code: 1, settings: Settings, isLogin: 1, name: cookie_uname, img: cookie_uimg, msg: ''}
+    }else{
+        result = {code: -1, settings: Settings, isLogin: 0, msg: ''}
+    }
+
     //返回修改后的数组
     //ctx.response.setHeader("Access-Control-Allow-Credentials","true");
     ctx.body = {
@@ -160,7 +173,7 @@ router.get('/getBookList', async (ctx, next) => {
             charset: "utf8"
         }
     };
-
+    console.log(search)
     ////后获取小说列表
     let list = await GetBooks.getBookList({
         ops: {qidianid: qidianid, link: search.result, sourceType: sourceType},
@@ -369,11 +382,12 @@ router.post('/register', async (ctx, next) => {
         phone = ctx.request.body.phone,
         smsCode = ctx.request.body.smsCode;
     //判断密码是否相等，手机验证码是否正确
-
+    let uid = 'uid' + new Date().getTime();
     var user = new User({
         name: name,
         password: password,
-        phone: phone
+        phone: phone,
+        uid: uid
     });
     console.log(user)
     let p1 = function(){
@@ -384,6 +398,10 @@ router.post('/register', async (ctx, next) => {
                 if(!!!dd){//未查到
                     user.save(function(err, dd){
                         if(err){ console.log(err); resolve({status: 1, result: {code: -404, msg: "数据库保存错误"}}); }
+                        //保存用户和书架关系
+                        var _link = new Link({uid: uid, books: []});
+                        _link.save(function(err, dd){ if(err){ console.log(err); } });
+
                         resolve({status: 1, result: {code: 1, msg: "注册成功！"}});
                     })
                 }else{
@@ -420,10 +438,15 @@ router.post('/login', async (ctx, next) => {
                         //判断密码是否相等
                         if(isMatch){
                             ////////设置session
-                            ctx.session.user = name;
-                            console.log(JSON.stringify(ctx.session))
-
-                            temp = {status: 1, result: {code: 1, msg: "登陆成功！"}};
+                            let token = md5(name+password);
+                            //设置session
+                            ctx.session.token = token;
+                            ctx.session.name = name;
+                            //设置cookie
+                            ctx.cookies.set("token", token, {path: '/'});
+                            ctx.cookies.set("uname", name, {path: '/'});
+                            ctx.cookies.set("uimg", '', {path: '/'});
+                            temp = {status: 1, result: {code: 1, token: token, uid: user.uid, msg: "登陆成功！"}};
                         }else{
                             temp = {status: 1, result: {code: -10, msg: "密码错误"}};
                         }
@@ -446,18 +469,18 @@ router.post('/login', async (ctx, next) => {
     };
 });
 ////////////登陆
-router.post('/loginOut', async (ctx, next) => {
-    var name = ctx.request.body.name;
+router.get('/loginOut', async (ctx, next) => {
+    //var name = ctx.request.body.name;
 
-    var status = 1,
-        result = {code: 1, msg: '退出成功！'};
-
-    ctx.session.user = null;
+    //设置session
+    ctx.session.token = null;
+    ctx.session.name = null;
+    let _result = {status: 1, result: {code: 1, msg: "退出成功！"}};
     //返回修改后的数组
     //ctx.response.setHeader("Access-Control-Allow-Credentials","true");
     ctx.body = {
-        status: status,
-        data: result
+        status: _result.status,
+        data: _result.result
     };
 });
 
@@ -465,10 +488,10 @@ router.post('/loginOut', async (ctx, next) => {
 router.post('/updateCase', async (ctx, next) => {
     /*var name = ctx.request.body.name;
     var password = ctx.request.body.password;*/
-    var data =ctx.request.body;
-
-    var status = 1,
-        result = "";
+    var data =ctx.request.body.books;
+    var uid =ctx.request.body.uid;
+    var status = 1;
+    var bookids = [];
 
     let p1 = function(data){
         let _case = new Case({
@@ -487,62 +510,105 @@ router.post('/updateCase', async (ctx, next) => {
             readTime: data.readTime
         });
         return new Promise(function(resolve, reject) {
-            /////查询是否已经占用了用户名
+            /////查询是否已经存在了
             Case.findOne({bid: data.bid}, function(err, dd){
-                if(err){ console.log(err); resolve({status: -404, result: '数据库查询错误'}); }
+                if(err){ console.log(err); resolve({code: -404, msg: '数据库查询错误'}); }
+                ///不管是不是存在的，都把书籍关联
+                bookids.push(data.bid);
                 if(!!!dd){//未查到
                     _case.save(function(err, dd){
-                        if(err){ console.log(err); resolve({status: -404, result: '数据库查询错误'}); }
-                        resolve({status: 1, result: "添加成功"});
+                        if(err){ console.log(err); resolve({code: -404, msg: '数据库查询错误'}); }
+                        resolve({code: 1, msg: "添加成功"});
                     })
                 }else{
-                    //resolve({status: -12, result: "用户名已经被注册了！"});
-                    resolve({status: 1, result: "已经存在"});
+                    //resolve({code: -12, msg: "用户名已经被注册了！"});
+                    resolve({code: 1, msg: "已经存在"});
                 }
             })
         })
     }
+    let p2 = function(uid, bookids){
+        return new Promise(function(resolve, reject) {
+            /////更新用户书架关系表
+            Link.update({uid: uid}, {books: bookids}, function(err, dd){
+                if(err){ console.log(err); resolve({code: -404, msg: '数据库查询错误'}); }
+                resolve({code: 1, msg: "添加成功"});
+            })
+        })
+    }
 
-    let _result = {status: 1, result: '上传成功！'};
+    let _result = {code: 1, msg: '上传成功！'};
     for(let x in data){
         let tmps = await p1(data[x]);
-        if(tmps.status != 1) _result.result = '上传失败！';
+        if(tmps.code != 1) _result = {code: -1, msg: '上传失败！'};
     }
-    console.log(_result)
+    //更新关联表
+    if(_result.code==1){
+        _result = await p2(uid, bookids);
+    }
     //返回修改后的数组
     //ctx.response.setHeader("Access-Control-Allow-Credentials","true");
     ctx.body = {
-        status: _result.status,
-        data: _result.result
+        status: status,
+        data: _result
     };
 });
 
 ////////////云端下载
 router.get('/dldateCase', async (ctx, next) => {
     let uid = ctx.request.query.uid;
-
-    let p1 = function(){
+    let p1 = function(uid){
         return new Promise(function(resolve, reject) {
-            //console.log(Case.find());
-            /////查询是否已经占用了用户名
-            Case.find(function(err, result){
-                if(err){ console.log(err); resolve({status: -404, result: '数据库查询错误'}); }
-                if(result){
-                    temp = {status: 1, result: result};
+            Link.findOne({uid: uid}, function(err, ret){
+                if(err){ console.log(err); resolve({code: -404, msg: '数据库查询错误'}); }
+                if(ret){
+                    temp = {code: 1, books: ret.books};
                     resolve(temp);
                 }else{
-                    resolve({status: -11, result: "未查到数据"});
+                    resolve({code: -11, msg: "未查到数据"});
                 }
             })
         })
     }
-    let _result = await p1();
-    console.log(_result);
+    let p2 = function(bid){
+        return new Promise(function(resolve, reject) {
+            //console.log(Case.find());
+            /////查询是否已经占用了用户名
+            Case.findOne({bid: bid}, function(err, result){
+                if(err){ console.log(err); resolve({code: -404, msg: '数据库查询错误'}); }
+                if(result){
+                    temp = {code: 1, book: result};
+                    resolve(temp);
+                }else{
+                    resolve({code: -11, msg: "未查到数据"});
+                }
+            })
+        })
+    };
+    //获取当前用户的书架id
+    let _books = await p1(uid);
+    let _result = {code: 1, arr: [], msg: '同步下载成功！'},
+        arr = [];
+
+    //通过id查询书籍
+    for(let x = 0;x<_books.books.length;x++){
+        let tmps = await p2(_books.books[x]);
+        console.log(4, tmps);
+        arr.push(tmps.book);
+
+        if(tmps.code != 1){
+            _result = {code: -1, arr: [], msg: '下载失败！'};
+            arr =[];
+        }
+    }
+    _result.arr = arr;
+
+    //console.log(2, _result);
     //返回修改后的数组
     //ctx.response.setHeader("Access-Control-Allow-Credentials","true");
     ctx.body = {
-        status: _result.status,
-        data: _result.result
+        status: 1,
+        data: _result
     };
     
 });

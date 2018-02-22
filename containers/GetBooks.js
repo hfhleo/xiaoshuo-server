@@ -1,7 +1,8 @@
 
 const charset = require('superagent-charset');
-const request = require('superagent');
-charset(request);
+const superagent = require('superagent');
+charset(superagent);
+const request = require('request');
 
 const iconv = require("iconv-lite")
 var urlencode = require('urlencode');
@@ -91,22 +92,43 @@ const searchBook = async (option)=> {
             charset = !!Rules[key].search.domRules.charset.value? Rules[key].search.domRules.charset.value: "utf8";
         };
     };
+    
+    console.log(1, formData)
     let p1 = function(){
         return new Promise(function(resolve, reject) {
-            request(method, url).send(formData).set(headers).charset(charset).end(function(err, res){
-                if(err){
-                    ////站点错误
-                    console.log(err)
-                    resolve({status: -1})
-                }else{
-                    console.log('状态码'+ res.statusCode)
-                    resolve({
-                        status: res.statusCode,
-                        text: res.text
-                    })
-                }
-                
-            });
+            console.log(0, method)
+            /*if(method=="POST"){
+                request.post({url, form: formData}, function(err,httpResponse,body){
+                    if(err){
+                        ////站点错误
+                        console.log(err)
+                        resolve({status: -1})
+                    }else{
+                        //console.log('状态码'+ JSON.stringify(httpResponse))
+                        console.log('内容'+ body);
+                        //return false;
+                        resolve({
+                            status: httpResponse.statusCode,
+                            text: body
+                        })
+                    }
+                })
+            }else{*/
+                superagent(method, url).set(headers).charset(charset).set('accept', 'json').send(formData).end(function(err, res){
+                    if(err){
+                        ////站点错误
+                        console.log(err)
+                        resolve({status: -1})
+                    }else{
+                        console.log('状态码'+ JSON.stringify(res))
+                        resolve({
+                            status: res.statusCode,
+                            text: res.text
+                        })
+                    }
+                    
+                });
+            //}
         });
     }
     let reptile = await p1();
@@ -136,7 +158,7 @@ const getBookinfo = async (option)=> {
     let start = Date.now();
     ////////使用同步操作请求多个
     var nowBook = new Promise(function(resolve, reject) {
-        request.get(Rules.qidian.info.url(option.ops)).set(option.headers).end(function(err, res){
+        superagent.get(Rules.qidian.info.url(option.ops)).set(option.headers).end(function(err, res){
             if(err){resolve({status: -1})}else{
                 resolve({ status: res.statusCode, text: res.text })
             }
@@ -145,7 +167,7 @@ const getBookinfo = async (option)=> {
     })
     var comment = new Promise(function(resolve, reject) {
         //前20条评论
-        request.get(Rules.qidian.comment.url(option.ops)).set(option.headers).end(function(err, res){
+        superagent.get(Rules.qidian.comment.url(option.ops)).set(option.headers).end(function(err, res){
             if(err){resolve({status: -1})}else{
                 resolve({ status: res.statusCode, text: res.text })
             }
@@ -187,7 +209,7 @@ const getOtherBook = async (option)=> {
 
     let p1 = function(){
         return new Promise(function(resolve, reject) {
-            request.get(Rules.qidian.otherBook.url(option.ops)).set(option.headers).end(function(err, res){
+            superagent.get(Rules.qidian.otherBook.url(option.ops)).set(option.headers).end(function(err, res){
                 if(err){resolve({status: -1})}else{
                     resolve({
                         status: res.statusCode,
@@ -235,7 +257,7 @@ const getBookList = async (option)=> {
 
     let p1 = function(){
         return new Promise(function(resolve, reject) {
-            request.get(url).set(option.headers).charset(option.charset).end(function(err, res){
+            superagent.get(url).set(option.headers).charset(option.charset).end(function(err, res){
                 if(err){resolve({status: -1})}else{
                     resolve({
                         status: res.statusCode,
@@ -277,7 +299,7 @@ const getBookDetail = async (option)=> {
         url = option.ops.link;
     let p1 = function(){
         return new Promise(function(resolve, reject) {
-            request.get(url).set(option.headers).charset(option.charset).end(function(err, res){
+            superagent.get(url).set(option.headers).charset(option.charset).end(function(err, res){
                 if(err){resolve({status: -1})}else{
                     resolve({
                         status: res.statusCode,
@@ -317,7 +339,7 @@ const getHotList = async (option)=> {
 
     let p1 = function(){
         return new Promise(function(resolve, reject) {
-            request.get(option.ops.link).set(option.headers).charset(option.charset).end(function(err, res){
+            superagent.get(option.ops.link).set(option.headers).charset(option.charset).end(function(err, res){
                 if(err){resolve({status: -1})}else{
                     resolve({
                         status: res.statusCode,
@@ -358,7 +380,7 @@ const getRanksBook = async (option)=> {
 
     let p1 = function(){
         return new Promise(function(resolve, reject) {
-            request.get(url).set(option.headers).end(function(err, res){
+            superagent.get(url).set(option.headers).end(function(err, res){
                 if(err){resolve({status: -1})}else{
                     resolve({
                         status: res.statusCode,
@@ -398,7 +420,7 @@ const getMenus = async (option)=> {
 
     let p1 = function(){
         return new Promise(function(resolve, reject) {
-            request.get(url).set(option.headers).end(function(err, res){
+            superagent.get(url).set(option.headers).end(function(err, res){
                 if(err){resolve({status: -1})}else{
                     resolve({
                         status: res.statusCode,
@@ -437,7 +459,7 @@ const getClfBookList = async (option)=> {
     console.log('当前连接'+url);
     let p1 = function(){
         return new Promise(function(resolve, reject) {
-            request.get(url).set(option.headers).end(function(err, res){
+            superagent.get(url).set(option.headers).end(function(err, res){
                 if(err){resolve({status: -1})}else{
                     resolve({
                         status: res.statusCode,

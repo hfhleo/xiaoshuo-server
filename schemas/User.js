@@ -5,10 +5,11 @@ var bcrypt = require('bcrypt');
 var SALT_WORK_FACTOP = 10;
 
 var UserSchema = new mongoose.Schema({
-	name: {
+	uid: {
 		unique: true,
 		type: String
 	},
+	name: String,
 	//name: String,
 	phone: String,
 	password: String,
