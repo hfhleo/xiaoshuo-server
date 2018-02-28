@@ -3,20 +3,20 @@ var mongoose = require('mongoose')
 
 
 var CaseSchema = new mongoose.Schema({
-	qidianid: String,
 	bid: String,
+	qidianid: String,
 	btype: String,
+	name: String,
 	link: String,
+	introduce: String,
 	imgUrl: String,
 	author: String,
 	authorId: String,
-	nowPage: String,
-	readNowPage: String,
-	nowTime: Date,
-	pageNumbe: String,
+	charset: String,
 	sourceType: String,
 	sourceTypeName: String,
-	pageList: Array,
+	readTime: String,
+	addTime: String,
 	//isNew： 
 	meta:{
 		createAt:{

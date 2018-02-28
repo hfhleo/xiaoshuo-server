@@ -79,7 +79,7 @@ const rules = {
 		},
 		info: {
 			url: (ops)=>{
-				return `https://book.qidian.com/info/${ops.bid}`;
+				return `https://book.qidian.com/info/${ops.qidianid}`;
 			},
 			domRules: {
 				id: {
@@ -128,7 +128,7 @@ const rules = {
 		//评论
 		comment: {
 			url: (ops)=>{
-				return `https://book.qidian.com/ajax/comment/index?_csrfToken=V48ubGHTlhHhDN2Ax1XPTsK3oNbDAZRcKGESAwZb&bookId=${ops.bid}&pageSize=20`;
+				return `https://book.qidian.com/ajax/comment/index?_csrfToken=V48ubGHTlhHhDN2Ax1XPTsK3oNbDAZRcKGESAwZb&bookId=${ops.qidianid}&pageSize=20`;
 			},
 			domRules: {
 				//threadList,threadCnt
@@ -137,7 +137,7 @@ const rules = {
 		//讨论
 		thread: {
 			url: (ops)=>{
-				return `https://book.qidian.com/ajax/book/GetBookForum?_csrfToken=V48ubGHTlhHhDN2Ax1XPTsK3oNbDAZRcKGESAwZb&authorId=${ops.authorId}&bookId=${ops.bid}&chanId=21&pageSize=20`;
+				return `https://book.qidian.com/ajax/book/GetBookForum?_csrfToken=V48ubGHTlhHhDN2Ax1XPTsK3oNbDAZRcKGESAwZb&authorId=${ops.authorId}&bookId=${ops.qidianid}&chanId=21&pageSize=20`;
 			},
 			domRules: {
 			}
@@ -153,7 +153,7 @@ const rules = {
 		//章节列表
 		list: {
 			url: (ops)=>{
-				return `https://book.qidian.com/ajax/book/category?_csrfToken=V48ubGHTlhHhDN2Ax1XPTsK3oNbDAZRcKGESAwZb&bookId=${ops.bid}`;
+				return `https://book.qidian.com/ajax/book/category?_csrfToken=V48ubGHTlhHhDN2Ax1XPTsK3oNbDAZRcKGESAwZb&bookId=${ops.qidianid}`;
 			},
 			/////起点列表使用接口，所以dom规则不需要
 			domRules: {
@@ -892,6 +892,75 @@ const rules = {
 				//结果列表
 				content: {
 					dom: "#BookText",
+					action: 'text()'
+				}
+			}
+		}
+	},
+	fkzww: {
+		name: '疯狂中文网',
+		search: {
+			method: "POST",
+			formData: (ops)=>{
+				//快速搜索
+				return {SearchKey: ops.name, SearchClass: 1, button: "%BF%EC%CB%D9%CB%D1%CB%F7", }
+			},
+			url: (ops)=>{
+				return `http://www.fkzww.com/Book/Search.aspx`;
+			},
+			encodeURI: false,
+			encodeURI_GBK: true,
+			headers: {},
+			domRules: {
+				link: {
+					dom: "#Content #CListTitle",
+					action: 'eq(0).find("a").last().attr("href")',
+					prefix: ""
+				},
+				charset: {
+					value: 'gbk',
+					dom: "meta[http-equiv='Content-Type']",
+					action: 'attr("content").split("charset=")[1]'
+				}
+			}
+		},
+		list: {
+			url: (ops)=>{
+				return `http://www.fkzww.com/Html/Book/8/24599/List.shtml`;
+			},
+			domRules: {
+				//结果列表
+				lists: {
+					dom: ".readerListBody #at tr",
+					action: 'eq(0).nextAll()'
+				},
+				sublists: "",
+				//name
+				name: {
+					dom: "a",
+					action: "text()"
+				},
+				info: {
+					dom: "a",
+					action: 'text()'
+				},
+				link: {
+					dom: "a",
+					action: 'attr("href")',
+					prefix: "listlink"
+				},
+				isvip: {
+					dom: "a",
+					//第三方都是非会员
+					action: 'length-1'
+				}
+			}
+		},
+		detail: {
+			domRules: {
+				//结果列表
+				content: {
+					dom: "#contents",
 					action: 'text()'
 				}
 			}
