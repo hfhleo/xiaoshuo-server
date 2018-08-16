@@ -639,8 +639,8 @@ socketApp.ws.use(router.all('/updataBookList', (ctx, next) => {
         ////后获取小说列表
         let list = GetBooks.getBookList({
             ops: { bid: bookInfo.bid, qidianid: bookInfo.qidianid, link: decodeURIComponent(bookInfo.listLink), sourceType: bookInfo.sourceType },
-            headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36", "Content-Type": 'text/html; charset=' + bookInfo.charsets },
-            charset: bookInfo.charsets
+            headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36", "Content-Type": 'text/html; charset=' + bookInfo.charset },
+            charset: bookInfo.charset
         });
         let searchBook = GetBooks.searchBook({
             ops: { name: bookInfo.name, sourceType: "qidian" },
