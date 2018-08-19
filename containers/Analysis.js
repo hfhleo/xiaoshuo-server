@@ -54,12 +54,15 @@ const anaSearch = async (html, type, oldname)=> {
 	            imgUrl: "https:" + eval('$(elem).find("'+ domRules.imgUrl.dom +'").'+ domRules.imgUrl.action) + ".png",
 	            name: eval('$(elem).find("'+ domRules.name.dom +'").'+ domRules.name.action),
 	            author: eval('$(elem).find("'+ domRules.author.dom +'").'+ domRules.author.action),
-	            authorId: parseInt( eval('$(elem).find("'+ domRules.authorId.dom +'").'+ domRules.authorId.action) ),
+				authorId: parseInt( eval('$(elem).find("'+ domRules.authorId.dom +'").'+ domRules.authorId.action) ),
+				bookType: eval('$(elem).find("' + domRules.bookType.dom + '").' + domRules.bookType.action),
+				bookState: eval('$(elem).find("' + domRules.bookState.dom + '").' + domRules.bookState.action),
 	            nowPage: eval('$(elem).find("'+ domRules.nowPage.dom +'").'+ domRules.nowPage.action),
 	            readNowPage: '',
 	            nowTime: eval('$(elem).find("'+ domRules.nowTime.dom +'").'+ domRules.nowTime.action),
 	            //总字数
-	            pageNumbe: eval('$(elem).find("'+ domRules.pageNumbe.dom +'").'+ domRules.pageNumbe.action),
+				pageNumbe: eval('$(elem).find("'+ domRules.pageNumbe.dom +'").'+ domRules.pageNumbe.action),
+				desc: eval('$(elem).find("' + domRules.intro.dom + '").' + domRules.intro.action + '.trim()'),
 	            //默认的来源
 	        	sourceType: "qidian",
 	        	sourceTypeName: "起点",
@@ -384,7 +387,8 @@ const anaRanksBook = async (html, souceType, type)=> {
                     brank: eval('$(elem).find("'+ domRules.brank.dom +'").'+ domRules.brank.action),
                     name: eval('$(elem).find("'+ domRules.name.dom +'").'+ domRules.name.action),
                     author: eval('$(elem).find("'+ domRules.author.dom +'").'+ domRules.author.action),
-                    authorId: parseInt( eval('$(elem).find("'+ domRules.authorId.dom +'").'+ domRules.authorId.action) ),
+					authorId: parseInt( eval('$(elem).find("'+ domRules.authorId.dom +'").'+ domRules.authorId.action) ),
+					desc: eval('$(elem).find("' + domRules.intro.dom + '").' + domRules.intro.action+'.trim()'),
                     nowPage: eval('$(elem).find("'+ domRules.nowPage.dom +'").'+ domRules.nowPage.action),
                     nowTime: eval('$(elem).find("'+ domRules.nowTime.dom +'").'+ domRules.nowTime.action),
                     //总字数
@@ -460,7 +464,7 @@ const anaClfBookList = async (html, souceType)=> {
     try{
         $(domRules.lists).each(function(i, elem) {
             
-            result.push({
+            let ops = {
                 qidianid:  parseInt( eval('$(elem).find("'+ domRules.id.dom +'").'+ domRules.id.action) ),
                 btype: eval('$(elem).find("'+ domRules.btype.dom +'").'+ domRules.btype.action),
                 link: eval('$(elem).find("'+ domRules.link.dom +'").'+ domRules.link.action),
@@ -469,14 +473,16 @@ const anaClfBookList = async (html, souceType)=> {
                 brank: eval('$(elem).find("'+ domRules.brank.dom +'").'+ domRules.brank.action),
                 name: eval('$(elem).find("'+ domRules.name.dom +'").'+ domRules.name.action),
                 author: eval('$(elem).find("'+ domRules.author.dom +'").'+ domRules.author.action),
-                authorId: parseInt( eval('$(elem).find("'+ domRules.authorId.dom +'").'+ domRules.authorId.action) ),
+				authorId: parseInt( eval('$(elem).find("'+ domRules.authorId.dom +'").'+ domRules.authorId.action) ),
+				desc: eval('$(elem).find("' + domRules.intro.dom + '").' + domRules.intro.action),
                 //nowPage: eval('$(elem).find("'+ domRules.nowPage.dom +'").'+ domRules.nowPage.action),
                 //nowTime: eval('$(elem).find("'+ domRules.nowTime.dom +'").'+ domRules.nowTime.action),
                 //总字数
                 pageNumbe: eval('$(elem).find("'+ domRules.nowTime.dom +'").'+ domRules.nowTime.action)
 
-            })
-            
+			};
+			ops.desc = ops.desc.trim();
+			result.push(ops)
         });
     }catch(e){
         console.log('排行抛出异常'+ e);

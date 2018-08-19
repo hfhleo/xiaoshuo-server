@@ -57,6 +57,21 @@ const rules = {
 					dom: ".author .name",
 					action: 'attr("href").split("author/")[1]'
 				},
+				//类型
+				bookType: {
+					dom: ".author a",
+					action: "eq(1).text()"
+				},
+				//书籍状态
+				bookState: {
+					dom: ".author span",
+					action: "text()"
+				},
+				//简介
+				intro: {
+					dom: ".intro",
+					action: 'text()'
+				},
 				//最新章节
 				nowPage: {
 					dom: ".book-mid-info .update a",
