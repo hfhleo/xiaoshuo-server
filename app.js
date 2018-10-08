@@ -544,17 +544,17 @@ router.post('/updateCase', async(ctx, next) => {
     //书架关系
     let p2 = function(uid, bookInfos) {
         return new Promise(function(resolve, reject) {
-            Link.findOne({ uid: uid }, function (err, dd) {
-                if (dd.uid == uid) return;//已经存在的
-                let nowBooks = dd.books.concat(bookInfos);
+            /* Link.findOne({ uid: uid }, function (err, dd) {
+                if (dd && dd.uid == uid) return;//已经存在的
+                let nowBooks = dd ? dd.books.concat(bookInfos) : bookInfos; */
                 /////更新用户书架关系表
-                Link.update({ uid: uid }, { books: nowBooks}, function(err, dd2) {
+            Link.update({ uid: uid }, { books: bookInfos}, function(err, dd2) {
                     if (err) { console.log(err);
                         resolve({ code: -404, msg: '数据库查询错误' }); }
                     resolve({ code: 1, msg: "添加成功" });
                 })
             })
-        })
+        //})
     }
     //检查书籍，清空无关联的书籍
     let p3 = function (uid, bookInfos) {
