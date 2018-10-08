@@ -119,13 +119,13 @@ router.get('/searchOneBook', async(ctx, next) => {
 ////////从起点获取详细的小说信息，包含起点小说列表，小说评论
 router.get('/getBookInfo', async(ctx, next) => {
     //var keys = escape(ctx.request.body.val);
-    var qidianid = ctx.request.query.qidianid;
+    var bookID = ctx.request.query.bookID;
     var authorId = ctx.request.query.authorId;
 
     let data = {};
     //获取小说详细信息
     let nowBook = await GetBooks.getBookinfo({
-        ops: { authorId: authorId, qidianid: qidianid, sourceType: "qidian" },
+        ops: { authorId: authorId, bookID: bookID, sourceType: "qidian" },
         headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36", "Content-Type": "text/html; charset=utf8" }
     });
     //////只要需要两次请求的才需要判断第一个请求 来中断后续请求
@@ -139,7 +139,7 @@ router.get('/getBookInfo', async(ctx, next) => {
 
     //获取小说其他书籍
     let otherBook = await GetBooks.getOtherBook({
-        ops: { authorId: authorId, qidianid: qidianid, sourceType: "qidian" },
+        ops: { authorId: authorId, bookID: bookID, sourceType: "qidian" },
         headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36", "Content-Type": "text/html; charset=utf8" }
     });
 
@@ -155,7 +155,7 @@ router.get('/getBookInfo', async(ctx, next) => {
 
 ///获取小说的文章列表，包含切换起点时，也会重新搜索，
 router.get('/getBookList', async(ctx, next) => {
-    let qidianid = ctx.request.query.qidianid;
+    let bookID = ctx.request.query.bookID;
     let name = ctx.request.query.name;
     let author = ctx.request.query.author;
     let sourceType = ctx.request.query.sourceType;
@@ -184,7 +184,7 @@ router.get('/getBookList', async(ctx, next) => {
     console.log(search)
     ////后获取小说列表
     let list = await GetBooks.getBookList({
-        ops: { qidianid: qidianid, link: search.result, sourceType: sourceType },
+        ops: { bookID: bookID, link: search.result, sourceType: sourceType },
         headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36", "Content-Type": 'text/html; charset=' + search.charset },
         charset: search.charset
     });
@@ -255,6 +255,7 @@ router.post('/getBookAllDetails', async(ctx, next) => {
     };
 
 });
+
 
 
 ////////////获取起点首页强推
@@ -337,7 +338,7 @@ router.get('/getClfBookList', async(ctx, next) => {
 ////////////更新书架
 router.post('/updataBookList', async(ctx, next) => {
     let ids = (ctx.request.body.ids).split(','),
-        qidianids = (ctx.request.body.qidianids).split(','),
+        bookIDs = (ctx.request.body.bookIDs).split(','),
         names = (ctx.request.body.names).split(','),
         listLinks = (ctx.request.body.listLinks).split(','),
         sourceTypes = (ctx.request.body.sourceTypes).split(','),
@@ -349,7 +350,7 @@ router.post('/updataBookList', async(ctx, next) => {
     for (var i = 0; i < ids.length; i++) {
         ////后获取小说列表
         let list = GetBooks.getBookList({
-            ops: { bid: ids[i], qidianid: qidianids[i], link: decodeURIComponent(listLinks[i]), sourceType: sourceTypes[i] },
+            ops: { bid: ids[i], bookID: bookIDs[i], link: decodeURIComponent(listLinks[i]), sourceType: sourceTypes[i] },
             headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36", "Content-Type": 'text/html; charset=' + charsets[i] },
             charset: charsets[i]
         });
@@ -502,12 +503,12 @@ router.post('/updateCase', async(ctx, next) => {
     var data = ctx.request.body.books;
     var uid = ctx.request.body.uid;
     var status = 1;
-    var bookids = [];
-
+    var bookInfos = [];
+    //添加书籍
     let p1 = function(data) {
         let _case = new Case({
             bid: data.bid,
-            qidianid: data.qidianid,
+            bookID: data.bookID,
             btype: data.btype,
             name: data.name,
             link: data.link,
@@ -522,13 +523,13 @@ router.post('/updateCase', async(ctx, next) => {
         });
         return new Promise(function(resolve, reject) {
             /////查询是否已经存在了
-            Case.findOne({ bid: data.bid }, function(err, dd) {
+            Case.findOne({ bid: data.bid }, function(err, dd1) {
                 if (err) { console.log(err);
                     resolve({ code: -404, msg: '数据库查询错误' }); }
                 ///不管是不是存在的，都把书籍关联
-                bookids.push(data.bid);
-                if (!!!dd) { //未查到
-                    _case.save(function(err, dd) {
+                bookInfos.push({ bid: data.bid, rdPst: data.rdPst});
+                if (!!!dd1) { //未查到
+                    _case.save(function(err, dd2) {
                         if (err) { console.log(err);
                             resolve({ code: -404, msg: '数据库查询错误' }); }
                         resolve({ code: 1, msg: "添加成功" });
@@ -540,13 +541,61 @@ router.post('/updateCase', async(ctx, next) => {
             })
         })
     }
-    let p2 = function(uid, bookids) {
+    //书架关系
+    let p2 = function(uid, bookInfos) {
         return new Promise(function(resolve, reject) {
+            Link.findOne({ uid: uid }, function (err, dd) {
+                if (dd.uid == uid) return;//已经存在的
+                let nowBooks = dd.books.concat(bookInfos);
+                /////更新用户书架关系表
+                Link.update({ uid: uid }, { books: nowBooks}, function(err, dd2) {
+                    if (err) { console.log(err);
+                        resolve({ code: -404, msg: '数据库查询错误' }); }
+                    resolve({ code: 1, msg: "添加成功" });
+                })
+            })
+        })
+    }
+    //检查书籍，清空无关联的书籍
+    let p3 = function (uid, bookInfos) {
+        return new Promise(function (resolve, reject) {
             /////更新用户书架关系表
-            Link.update({ uid: uid }, { books: bookids }, function(err, dd) {
-                if (err) { console.log(err);
-                    resolve({ code: -404, msg: '数据库查询错误' }); }
-                resolve({ code: 1, msg: "添加成功" });
+            Link.find({}, function (err, dd) {
+                if (err) {console.log(err);resolve({ code: -404, msg: '数据库查询错误' });}
+                let LinkBookids = [],
+                    CaseBookids = [];
+                dd.map((item)=>{
+                    LinkBookids = LinkBookids.concat(item.books.bid || item.books);
+                });
+
+                Case.find({}, function (err, dd) {
+                    dd.map((item) => {
+                        CaseBookids = CaseBookids.concat(item.bid);
+                    });
+                    if (LinkBookids.length == CaseBookids.length) return;
+                    //比对不包含的
+                    LinkBookids.map((item1)=>{
+                        let idx = -1;
+                        for (let i = 0; i < CaseBookids.length;i++){
+                            if (item1 == CaseBookids[i]) {
+                                idx = i;
+                                break;
+                            }
+                        }
+                        //console.log(idx)
+                        if (idx != -1) CaseBookids.splice(idx, 1);//删除包含的书籍
+                    });
+                    //console.log(CaseBookids);
+                    //删除多余
+                    CaseBookids.map((item)=>{
+                        Case.deleteOne({ bid: item.toString() }, function (err, obj){
+                            console.log(obj)
+                            if (err) throw err;
+                            if (obj) console.log("文档删除成功");
+                            //mongoose_connect.close();
+                        })
+                    });
+                })
             })
         })
     }
@@ -558,7 +607,9 @@ router.post('/updateCase', async(ctx, next) => {
     }
     //更新关联表
     if (_result.code == 1) {
-        _result = await p2(uid, bookids);
+        _result = await p2(uid, bookInfos);
+        
+        p3(uid, bookInfos);
     }
     //返回修改后的数组
     //ctx.response.setHeader("Access-Control-Allow-Credentials","true");
@@ -608,8 +659,9 @@ router.get('/dldateCase', async(ctx, next) => {
 
     //通过id查询书籍
     for (let x = 0; x < _books.books.length; x++) {
-        let tmps = await p2(_books.books[x]);
-        console.log(4, tmps);
+        let book = _books.books[x];
+        let tmps = await p2(book.uid);
+            //tmps.book.rdPst = book.rdPst;
         arr.push(tmps.book);
 
         if (tmps.code != 1) {
@@ -619,7 +671,7 @@ router.get('/dldateCase', async(ctx, next) => {
     }
     _result.arr = arr;
 
-    //console.log(2, _result);
+    console.log(2, _result);
     //返回修改后的数组
     //ctx.response.setHeader("Access-Control-Allow-Credentials","true");
     ctx.body = {
@@ -638,7 +690,7 @@ socketApp.ws.use(router.all('/updataBookList', (ctx, next) => {
         console.log(bookInfo);
         ////后获取小说列表
         let list = GetBooks.getBookList({
-            ops: { bid: bookInfo.bid, qidianid: bookInfo.qidianid, link: decodeURIComponent(bookInfo.listLink), sourceType: bookInfo.sourceType },
+            ops: { bid: bookInfo.bid, bookID: bookInfo.bookID, link: decodeURIComponent(bookInfo.listLink), sourceType: bookInfo.sourceType },
             headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36", "Content-Type": 'text/html; charset=' + bookInfo.charset },
             charset: bookInfo.charset
         });
@@ -678,27 +730,40 @@ socketApp.ws.use(router.all('/updataBookList', (ctx, next) => {
     });
 }).routes());// .routes() is what converts this `router` object to koa2 middleware.
 
-router.post('/updataBookList', async(ctx, next) => {
-    let ids = (ctx.request.body.ids).split(','),
-        qidianids = (ctx.request.body.qidianids).split(','),
-        names = (ctx.request.body.names).split(','),
-        listLinks = (ctx.request.body.listLinks).split(','),
-        sourceTypes = (ctx.request.body.sourceTypes).split(','),
-        charsets = (ctx.request.body.charsets).split(',');
+//下载章节
+socketApp.ws.use(router.all('/getDownloadBook', (ctx, next) => {
+    let len = 0;
+    // the websocket is added to the context as `ctx.websocket`.
+    ctx.websocket.on('message', async function (message) {
+        // print message from the client
+        let detailInfo = JSON.parse(message || {});
+        console.log(detailInfo);
+        ////后获取小说内容
+        let detail = await GetBooks.getBookDetail({
+            ops: { name: detailInfo.name, link: detailInfo.link, sourceType: detailInfo.sourceType },
+            headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36", "Content-Type": 'text/html; charset=' + detailInfo.charset },
+            charset: detailInfo.charset
+        });
 
-    let status = 1;
-    let result = [];
+        let body = {
+            status: detail.status,
+            data: detail.result,
+            pos: detailInfo.pos
+        };
 
-    for (var i = 0; i < ids.length; i++) {
-        
-    }
-    //返回修改后的数组
-    ctx.body = {
-        status: status,
-        data: result
-    };
+        //返回结果
+        ctx.websocket.send(JSON.stringify(body));
+        //判断是否结束
+        len++;
+        if (len == detailInfo.len) {
+            let body = {
+                end: 1
+            };
+            ctx.websocket.send(JSON.stringify(body));
+        }
+    });
+}).routes());// .routes() is what converts this `router` object to koa2 middleware.
 
-});
 
 // 在端口3000监听:
 app.listen(3888);

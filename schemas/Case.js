@@ -4,7 +4,7 @@ var mongoose = require('mongoose')
 
 var CaseSchema = new mongoose.Schema({
 	bid: String,
-	qidianid: String,
+	bookID: String,
 	btype: String,
 	name: String,
 	link: String,
@@ -13,6 +13,7 @@ var CaseSchema = new mongoose.Schema({
 	author: String,
 	authorId: String,
 	charset: String,
+	bookSource: String,
 	sourceType: String,
 	sourceTypeName: String,
 	readTime: String,

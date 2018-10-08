@@ -47,7 +47,8 @@ const anaSearch = async (html, type, oldname)=> {
 	    $(domRules.lists).each(function(i, elem) {
 	        
 	        result.push({
-	            qidianid:  parseInt( eval('$(elem).find("'+ domRules.id.dom +'").'+ domRules.id.action) ),
+				bookID:  parseInt( eval('$(elem).find("'+ domRules.id.dom +'").'+ domRules.id.action) ),
+				bookSource: 'qd',
 	            btype: eval('$(elem).find("'+ domRules.btype.dom +'").'+ domRules.btype.action),
 	            link: eval('$(elem).find("'+ domRules.link.dom +'").'+ domRules.link.action),
 	            //拼接完整
@@ -98,7 +99,8 @@ const anaBookinfo = async (html, type)=> {
         let ptotal = parseInt( eval('$("'+ domRules.ptotal.dom +'").'+ domRules.ptotal.action) );
 		data = {
 			//小说ID
-	        qidianid: parseInt( eval('$("'+ domRules.id.dom +'").'+ domRules.id.action) ),
+			bookID: parseInt( eval('$("'+ domRules.id.dom +'").'+ domRules.id.action) ),
+			bookSource: 'qd',
 	        //小说名称
 	        name: eval('$("'+ domRules.name.dom +'").'+ domRules.name.action),
 	        //作品图片
@@ -118,7 +120,7 @@ const anaBookinfo = async (html, type)=> {
 	        //小说阅读总章节数
             ptotal: ptotal,
             //起点的总章数，来判断是否显示更新
-	        qidian_ptotal: ptotal,
+	        book_ptotal: ptotal,
 	        //作品列表
 	        pageList: [],
 	        //默认的阅读第几章
@@ -153,14 +155,14 @@ const anaBookinfo = async (html, type)=> {
 	    });
 	    //data.qidianPageList = qidianPageList;
 	    data.pageList = qidianPageList;
-	    data.ptotal = data.qidian_ptotal = qidianPageList.length;
+	    data.ptotal = data.book_ptotal = qidianPageList.length;
 	    
 	    console.log(qidianPageList)
 	}catch (e){
 		console.log('详细信息抛出错误'+ e)
 	}
 	console.log('加入书架后的数据'+JSON.stringify(data))
-	let status = !!data.qidianid? 1: -2;
+	let status = !!data.bookID? 1: -2;
     return {status: status, data: data}
 };
 
@@ -173,7 +175,8 @@ const anaOtherBook = async (html, type)=> {
         $('.author-work .author-item').map(function() {
 
             bookList.push({
-                qidianid: parseInt($(this).find('.author-item-title a').attr('data-bid')),
+				bookID: parseInt($(this).find('.author-item-title a').attr('data-bid')),
+				bookSource:'qd',
                 workTime: $(this).find('.author-item-time').text(),
                 imgUrl: "https:"+$(this).find('.author-item-book img').attr('src')+".png",
                 name: $(this).find('.author-item-title a').text(),
@@ -316,7 +319,8 @@ const anaHotList = async (html, souceType, type)=> {
         if(type=="index"){
 	        $('.index-two-wrap .book-list-wrap.mr30 .book-list li').map(function() {
 	            bookList.push({
-	                qidianid: parseInt($(this).find('.name').attr('data-bid')),
+					bookID: parseInt($(this).find('.name').attr('data-bid')),
+					bookSource: 'qd',
 	                btype: $(this).find('.channel').text(),
 	                name: $(this).find('.name').text(),
 	                author: $(this).find('.author').text(),
@@ -330,13 +334,15 @@ const anaHotList = async (html, souceType, type)=> {
     		$('.strongrec-wrap .strongrec-list').map(function(item) {
     			///插入标题
     			bookList.push({
-    				qidianid: parseInt( String($(this).find('.date-range-title .date-from').text()).split(".").join("") ),
+					bookID: parseInt( String($(this).find('.date-range-title .date-from').text()).split(".").join("") ),
+					bookSource: 'qd',
     				title: $(this).find('.date-range-title').text()
     			})
     			let eles = $(this).find('.book-list li');
     			eles.map(function(ele) {
     				bookList.push({
-		                qidianid: parseInt($(this).find('.name').attr('data-bid')),
+						bookID: parseInt($(this).find('.name').attr('data-bid')),
+						bookSource: 'qd',
 		                btype: puer($(this).find('.channel').text()),
 		                name: $(this).find('.name').text(),
 		                author: $(this).find('.author').text(),
@@ -379,7 +385,8 @@ const anaRanksBook = async (html, souceType, type)=> {
             $(domRules.lists).each(function(i, elem) {
                 
                 result.push({
-                    qidianid:  parseInt( eval('$(elem).find("'+ domRules.id.dom +'").'+ domRules.id.action) ),
+					bookID:  parseInt( eval('$(elem).find("'+ domRules.id.dom +'").'+ domRules.id.action) ),
+					bookSource: 'qd',
                     btype: eval('$(elem).find("'+ domRules.btype.dom +'").'+ domRules.btype.action),
                     link: eval('$(elem).find("'+ domRules.link.dom +'").'+ domRules.link.action),
                     //拼接完整
@@ -400,7 +407,8 @@ const anaRanksBook = async (html, souceType, type)=> {
         }else{
             $('.week-rec-wrap .rec-list li').map(function() {
                 result.push({
-                    qidianid: parseInt($(this).find('.name').attr('data-bid')),
+					bookID: parseInt($(this).find('.name').attr('data-bid')),
+					bookSource: 'qd',
                     name: $(this).find('.name').text(),
                     author: $(this).find('.author').text(),
                     authorId: parseInt( String($(this).find('.author').attr('href')).split("id=")[1] ),
@@ -465,7 +473,8 @@ const anaClfBookList = async (html, souceType)=> {
         $(domRules.lists).each(function(i, elem) {
             
             let ops = {
-                qidianid:  parseInt( eval('$(elem).find("'+ domRules.id.dom +'").'+ domRules.id.action) ),
+				bookID:  parseInt( eval('$(elem).find("'+ domRules.id.dom +'").'+ domRules.id.action) ),
+				bookSource: 'qd',
                 btype: eval('$(elem).find("'+ domRules.btype.dom +'").'+ domRules.btype.action),
                 link: eval('$(elem).find("'+ domRules.link.dom +'").'+ domRules.link.action),
                 //拼接完整
