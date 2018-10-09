@@ -702,7 +702,7 @@ socketApp.ws.use(router.all('/updataBookList', (ctx, next) => {
         let results = await Promise.all([list, searchBook]);
         let l_result = results[0],
             s_result = results[1];
-        l_result.result.bid = parseInt(bookInfo.bid);
+        l_result.result.bid = bookInfo.bid;
         if (s_result.status == 1) {
             l_result.result.nowPage = s_result.result[0].nowPage;
             l_result.result.nowTime = s_result.result[0].nowTime;
