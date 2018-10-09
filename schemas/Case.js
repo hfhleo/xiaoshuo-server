@@ -16,6 +16,7 @@ var CaseSchema = new mongoose.Schema({
 	bookSource: String,
 	sourceType: String,
 	sourceTypeName: String,
+	rdPst: String,
 	readTime: String,
 	addTime: String,
 	//isNew： 

@@ -61,18 +61,31 @@ router.get('/init', async(ctx, next) => {
 
     var status = 1,
         result = {};
-    let cookie_token = ctx.cookies.get("token");
-    let cookie_uname = ctx.cookies.get("uname");
-    let cookie_uimg = ctx.cookies.get("uimg");
-    console.log('客户端的token' + cookie_token);
-    console.log('客户端的uname' + cookie_uname);
-    console.log('服务器的session' + JSON.stringify(ctx.session))
+    var cuid = ctx.cookies.get("uid");
+    console.log(cuid)
+    if (cuid){
+        let cookie_token = ctx.cookies.get(cuid+"_token"),
+            cookie_uid = ctx.cookies.get(cuid + "_uid"),
+            cookie_uname = ctx.cookies.get(cuid + "_uname"),
+            cookie_uimg = ctx.cookies.get(cuid + "_uimg");
 
-    /////判断是否登陆
-    if (!!ctx.session.token && cookie_token == ctx.session.token) {
-        result = { code: 1, settings: Settings, isLogin: 1, name: cookie_uname, img: cookie_uimg, msg: '' }
-    } else {
-        result = { code: -1, settings: Settings, isLogin: 0, msg: '' }
+        let session_token = ctx.session[cuid + "_token"],
+            session_uid = ctx.session[cuid + "_uid"],
+            session_uname = ctx.session[cuid + "_uname"];
+        
+        console.log('客户端的token ' + cookie_token);
+        console.log('客户端的uid ' + cookie_uid);
+        console.log('服务端的token ' + session_token);
+        console.log('服务端的uid ' + session_uid);
+        
+        /////判断是否登陆
+        if (!!cookie_token && cookie_token == session_token && !!cookie_uid && cookie_uid == session_uid) {
+            result = { code: 1, uid: cookie_uid, settings: Settings, isLogin: 1, name: cookie_uname, img: cookie_uimg, msg: '已经登录' }
+        } else {
+            result = { code: -1, uid: "", settings: Settings, isLogin: 0, msg: '未登录' }
+        }
+    }else{
+        result = { code: -1, uid: "", settings: Settings, isLogin: 0, msg: '未登录' }
     }
 
     //返回修改后的数组
@@ -439,7 +452,6 @@ router.post('/login', async(ctx, next) => {
 
     let p1 = function() {
         return new Promise(function(resolve, reject) {
-            /////查询是否已经占用了用户名
             User.findOne({ name: name }, function(err, user) {
                 if (err) { console.log(err);
                     resolve({ status: 1, result: { code: -404, msg: "数据库查询错误" } }); }
@@ -450,15 +462,21 @@ router.post('/login', async(ctx, next) => {
                         //判断密码是否相等
                         if (isMatch) {
                             ////////设置session
-                            let token = md5(name + password);
+                            let token = md5(name + password),
+                                uid = user.uid;
                             //设置session
-                            ctx.session.token = token;
-                            ctx.session.name = name;
+                            ctx.session[uid + "_token"] = token;
+                            ctx.session[uid + "_uid"] = uid;
+                            ctx.session[uid + "_uname"] = name;
                             //设置cookie
-                            ctx.cookies.set("token", token, { path: '/' });
-                            ctx.cookies.set("uname", name, { path: '/' });
-                            ctx.cookies.set("uimg", '', { path: '/' });
-                            temp = { status: 1, result: { code: 1, token: token, uid: user.uid, msg: "登陆成功！" } };
+                            ctx.cookies.set("uid", uid, { path: '/' });
+
+                            ctx.cookies.set(uid + "_token", token, { path: '/' });
+                            ctx.cookies.set(uid + "_uid", uid, { path: '/' });
+                            ctx.cookies.set(uid + "_uname", name, { path: '/' });
+                            ctx.cookies.set(uid + "_uimg", "", { path: '/' });
+                            
+                            temp = { status: 1, result: { code: 1, token: token, uid: uid, msg: "登陆成功！" } };
                         } else {
                             temp = { status: 1, result: { code: -10, msg: "密码错误" } };
                         }
@@ -500,7 +518,7 @@ router.get('/loginOut', async(ctx, next) => {
 router.post('/updateCase', async(ctx, next) => {
     /*var name = ctx.request.body.name;
     var password = ctx.request.body.password;*/
-    var data = ctx.request.body.books;
+    var bookData = ctx.request.body.books;
     var uid = ctx.request.body.uid;
     var status = 1;
     var bookInfos = [];
@@ -521,13 +539,14 @@ router.post('/updateCase', async(ctx, next) => {
             sourceTypeName: data.sourceTypeName,
             readTime: data.readTime
         });
+        ///不管是不是存在的，都把书籍关联
+        bookInfos.push({ bid: data.bid, rdPst: data.rdPst, readTime: data.readTime });
+
         return new Promise(function(resolve, reject) {
             /////查询是否已经存在了
             Case.findOne({ bid: data.bid }, function(err, dd1) {
                 if (err) { console.log(err);
                     resolve({ code: -404, msg: '数据库查询错误' }); }
-                ///不管是不是存在的，都把书籍关联
-                bookInfos.push({ bid: data.bid, rdPst: data.rdPst});
                 if (!!!dd1) { //未查到
                     _case.save(function(err, dd2) {
                         if (err) { console.log(err);
@@ -557,43 +576,48 @@ router.post('/updateCase', async(ctx, next) => {
         //})
     }
     //检查书籍，清空无关联的书籍
-    let p3 = function (uid, bookInfos) {
+    let p3 = function () {
         return new Promise(function (resolve, reject) {
             /////更新用户书架关系表
-            Link.find({}, function (err, dd) {
+            Link.find({}, function (err, dd1) {
                 if (err) {console.log(err);resolve({ code: -404, msg: '数据库查询错误' });}
                 let LinkBookids = [],
-                    CaseBookids = [];
-                dd.map((item)=>{
-                    LinkBookids = LinkBookids.concat(item.books.bid || item.books);
+                    CaseBookids = [],
+                    CaseBookidsTmp = [];
+                dd1.map((item)=>{
+                    let LinkBooks = item.books;
+                    LinkBooks.map((it)=>{
+                        LinkBookids = LinkBookids.concat(it.bid);
+                    })
                 });
 
-                Case.find({}, function (err, dd) {
-                    dd.map((item) => {
+                Case.find({}, function (err, dd2) {
+                    dd2.map((item) => {
                         CaseBookids = CaseBookids.concat(item.bid);
                     });
                     if (LinkBookids.length == CaseBookids.length) return;
                     //比对不包含的
-                    LinkBookids.map((item1)=>{
+                    CaseBookidsTmp = CaseBookids.slice(0);
+                    CaseBookids.map((item1, index)=>{
                         let idx = -1;
-                        for (let i = 0; i < CaseBookids.length;i++){
-                            if (item1 == CaseBookids[i]) {
-                                idx = i;
+                        for (let i = 0; i < LinkBookids.length;i++){
+                            if (item1 == LinkBookids[i]) {
+                                idx = index;
                                 break;
                             }
                         }
                         //console.log(idx)
-                        if (idx != -1) CaseBookids.splice(idx, 1);//删除包含的书籍
+                        if (idx != -1) CaseBookidsTmp[idx] = 0;//删除包含的书籍
                     });
-                    //console.log(CaseBookids);
                     //删除多余
-                    CaseBookids.map((item)=>{
-                        Case.deleteOne({ bid: item.toString() }, function (err, obj){
-                            console.log(obj)
-                            if (err) throw err;
-                            if (obj) console.log("文档删除成功");
-                            //mongoose_connect.close();
-                        })
+                    CaseBookidsTmp.map((item)=>{
+                        if(item!=0){
+                            Case.deleteOne({ bid: item }, function (err, obj) {
+                                if (err) throw err;
+                                if (obj) console.log("文档删除成功");
+                                //mongoose_connect.close();
+                            })
+                        }
                     });
                 })
             })
@@ -601,15 +625,15 @@ router.post('/updateCase', async(ctx, next) => {
     }
 
     let _result = { code: 1, msg: '上传成功！' };
-    for (let x in data) {
-        let tmps = await p1(data[x]);
+    for (let x in bookData) {
+        let tmps = await p1(bookData[x]);
         if (tmps.code != 1) _result = { code: -1, msg: '上传失败！' };
     }
     //更新关联表
     if (_result.code == 1) {
         _result = await p2(uid, bookInfos);
         
-        p3(uid, bookInfos);
+        p3();
     }
     //返回修改后的数组
     //ctx.response.setHeader("Access-Control-Allow-Credentials","true");
@@ -658,20 +682,23 @@ router.get('/dldateCase', async(ctx, next) => {
         arr = [];
 
     //通过id查询书籍
+    if (_books.books.length < 1){
+        _result = { code: -1, arr: [], msg: '书架暂无内容！' };
+    }
     for (let x = 0; x < _books.books.length; x++) {
         let book = _books.books[x];
-        let tmps = await p2(book.uid);
-            //tmps.book.rdPst = book.rdPst;
-        arr.push(tmps.book);
+        let tmps = await p2(book.bid);
 
-        if (tmps.code != 1) {
-            _result = { code: -1, arr: [], msg: '下载失败！' };
-            arr = [];
+        if (tmps.code == 1){
+            tmps.book.rdPst = book.rdPst || 1;
+            tmps.book.readTime = book.readTime || 1;
+            arr.push(tmps.book);
+        }else {
+            _result = { code: 1, arr: [], msg: '下载不完全！' };
+            //arr = [];
         }
     }
     _result.arr = arr;
-
-    console.log(2, _result);
     //返回修改后的数组
     //ctx.response.setHeader("Access-Control-Allow-Credentials","true");
     ctx.body = {
