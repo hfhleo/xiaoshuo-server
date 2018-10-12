@@ -1,0 +1,29 @@
+{
+    "apps": [{
+        "name": "xiaoshuo-server",
+        "script": "app.js", //启动脚本
+        //"instances": 2,   //实例，cpu核数
+        "env": {
+            "COMMON_VARIABLE": "true"   //可以传递变量
+        },
+        "env_production": {
+            "NOOD_ENV": "production"    //生产环境
+        }
+    }],
+    "deploy": { //发布配置
+        "production": {
+            "user": "root", //登陆服务器名
+            "host": ["112.74.33.167"],   //服务器地址
+            "port": "22",
+            "path": "/var/www/html/servers",    //发布到的目录
+            "ref": "origin/master",
+            "repo": "git@github.com:hfhleo/xiaoshuo-server.git",
+            "ssh_options": "StrictHostKeyChecking=no",  //不验证key
+            // "post-deploy": "npm install",    //发布后执行的命令
+            "pre-deploy-local": "echo 'Deploy Done'",  //发布之前的任务
+            "env": {
+                "NOOD_ENV": "production"
+            }
+        }
+    }
+}
