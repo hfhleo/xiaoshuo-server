@@ -1,7 +1,7 @@
 {
     "apps": [{
         "cwd": "./", // 当前工作路径
-        "name": "xiaoshuo-server",
+        "name": "xiaoshuo",
         "log_date_format": "YYYY-MM-DD HH:mm Z",
         "error_file": "/var/www/html/logs/xiaoshuo-server/error",
         "out_file": "/var/www/html/logs/xiaoshuo-server/log",
