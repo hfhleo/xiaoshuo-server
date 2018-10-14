@@ -21,6 +21,7 @@
             "user": "root", //登陆服务器名
             "host": ["112.74.33.167"],   //服务器地址
             "port": "3999",
+            "key": "/c/Users/hfh/.ssh/ali_ser_id_rsa", // ssh公钥
             "path": "/var/www/html/servers/xiaoshuo-server",    //发布到的目录
             "ref": "origin/master",
             "repo": "git@github.com:hfhleo/xiaoshuo-server.git",
