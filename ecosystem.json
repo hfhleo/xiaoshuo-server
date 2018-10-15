@@ -26,7 +26,7 @@
             "ref": "origin/master",
             "repo": "git@github.com:hfhleo/xiaoshuo-server.git",
             "ssh_options": "StrictHostKeyChecking=no",  //不验证key
-            // "post-deploy": "npm install",    //发布后执行的命令
+            "post-deploy": "npm install",    //发布后执行的命令
             "pre-deploy-local": "echo 'Deploy Done'",  //发布之前的任务
             "env": {
                 "NOOD_ENV": "production"
