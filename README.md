@@ -5,6 +5,6 @@
 > 使用mongoodb做数据库
 
 ```
-pm2 delopy ecosystem.json product srtup     //第一次发布代码到服务器
-pm2 delopy ecosystem.json product       //启动服务或更新代码
+pm2 deploy ecosystem.json product srtup     //第一次发布代码到服务器
+pm2 deploy ecosystem.json product       //启动服务或更新代码
 ```
