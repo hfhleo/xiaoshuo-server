@@ -71,7 +71,6 @@ const searchBook = async (option) => {
         formData = '',
         headers = option.headers,
         charset = "utf8";
-    console.log('-----', ops.sourceType)
     //判断搜索url源头
     for (key in Rules) {
         if (ops.sourceType == key) {
@@ -94,7 +93,6 @@ const searchBook = async (option) => {
         };
     };
 
-    console.log('search formData: ', formData)
     let p1 = function () {
         return new Promise(function (resolve, reject) {
             if (method == "POST") {

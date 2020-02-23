@@ -331,7 +331,7 @@ const rules = {
 				link: {
 					dom: ".grid tr",
 					action: 'eq(1).children("td").eq(0).find("a").attr("href")',
-					prefix: ""
+					prefix: "https://www.bqg5.cc"
 				},
 				charset: {
 					value: 'gbk',
@@ -360,7 +360,7 @@ const rules = {
 				link: {
 					dom: "a",
 					action: 'attr("href")',
-					prefix: ""
+					prefix: "https://www.bqg5.cc"
 				},
 				isvip: {
 					dom: "a",
