@@ -13,7 +13,7 @@ const rules = {
 				return `https://www.qidian.com/search?kw=${ops.name}`;
 			},
 			encodeURI: true,
-			headers: {},
+			headers: () => {return {}},
 			domRules: {
 				//结果列表
 				lists: ".book-img-text ul>li",
@@ -259,10 +259,74 @@ const rules = {
 				return ""
 			},
 			url: (ops)=>{
-				return `http://www.biquge5200.com/modules/article/search.php?searchkey=${ops.name}`;
+				return `https://www.biquge5200.com/modules/article/search.php?searchkey=${ops.name}`;
 			},
 			encodeURI: true,
-			headers: {},
+			headers: () => {return {}},
+			domRules: {
+				link: {
+					dom: ".grid tr",
+					action: 'eq(1).children("td").eq(0).find("a").attr("href")',
+					prefix: ""
+				},
+				charset: {
+					value: 'gbk',
+					dom: "meta[http-equiv='Content-Type']",
+					action: 'attr("content").split("charset=")[1]'
+				}
+			}
+		},
+		list: {
+			domRules: {
+				//结果列表
+				lists: {
+					dom: "#list dl",
+					action: 'find("div").next().nextAll()'
+				},
+				sublists: "",
+				//name
+				name: {
+					dom: "a",
+					action: "text()"
+				},
+				info: {
+					dom: "a",
+					action: 'text()'
+				},
+				link: {
+					dom: "a",
+					action: 'attr("href")',
+					prefix: ""
+				},
+				isvip: {
+					dom: "a",
+					//第三方都是非会员
+					action: 'length-1'
+				}
+			}
+		},
+		detail: {
+			domRules: {
+				//结果列表
+				content: {
+					dom: "#content",
+					action: 'text()'
+				}
+			}
+		}
+	},
+	bqg5: {
+		name: '笔趣阁5',
+		search: {
+			method: "GET",
+			formData: (ops)=>{
+				return ""
+			},
+			url: (ops)=>{
+				return `https://www.bqg5.cc/modules/article/search.php?searchkey=${ops.name}`;
+			},
+			encodeURI: true,
+			headers: () => {return {}},
 			domRules: {
 				link: {
 					dom: ".grid tr",
@@ -326,7 +390,7 @@ const rules = {
 				return `http://www.qiuxiaoshuo.com/search.htm?keyword=${ops.name}`;
 			},
 			encodeURI: true,
-			headers: {},
+			headers: () => {return {}},
 			domRules: {
 				link: {
 					dom: "#novel-list ul .list-group-item",
@@ -379,29 +443,25 @@ const rules = {
 			}
 		}
 	},
-	_81xsw: {
-		name: '81中文网',
+	sqsxs: {
+		name: '手牵手小说',
 		search: {
 			method: "GET",
 			formData: (ops)=>{
 				return ""
 			},
 			url: (ops)=>{
-				return `http://zhannei.baidu.com/cse/search?s=16095493717575840686&click=1&q=${ops.name}`;
+				return `https://www.sqsxs.com/modules/article/search.php?searchkey=${ops.name}`;
 			},
-			encodeURI: false,
+			encodeURI: true,
 			//gbk全部要转换成encodeURI_GBK
-			encodeURI_GBK: true,
-			headers: {},
+			encodeURI_GBK: false,
+			headers: () => {return {}},
 			domRules: {
 				link: {
-					dom: "#center .result-list .result-item",
-					action: 'find(".result-item-title a").attr("href")',
+					dom: ".grid tr",
+					action: 'eq(1).children("td").eq(0).find("a").attr("href")',
 					prefix: ""
-				},
-				name: {
-					dom: "#center .result-list .result-item",
-					action: 'find(".result-item-title a").attr("title")',
 				},
 				charset: {
 					value: 'gbk',
@@ -415,7 +475,7 @@ const rules = {
 				//结果列表
 				lists: {
 					dom: "#list dl",
-					action: 'find("dt").nextAll()'
+					action: 'find("div").next().nextAll()'
 				},
 				sublists: "",
 				//name
@@ -430,7 +490,7 @@ const rules = {
 				link: {
 					dom: "a",
 					action: 'attr("href")',
-					prefix: "http://www.81xsw.com"
+					prefix: ""
 				},
 				isvip: {
 					dom: "a",
@@ -461,7 +521,7 @@ const rules = {
 			},
 			encodeURI: false,
 			encodeURI_GBK: true,
-			headers: {},
+			headers: () => {return {}},
 			domRules: {
 				link: {
 					dom: "#newscontent ul li",
@@ -514,275 +574,6 @@ const rules = {
 			}
 		}
 	},
-	shuquba: {
-		name: '书趣吧',
-		search: {
-			method: "GET",
-			formData: (ops)=>{
-				return ""
-			},
-			url: (ops)=>{
-				return `http://zhannei.baidu.com/cse/search?s=14542303413927578789&entry=1&ie=gbk&q=${ops.name}`;
-			},
-			encodeURI: false,
-			encodeURI_GBK: true,
-			headers: {},
-			domRules: {
-				link: {
-					dom: ".result-list .result-item",
-					action: 'eq(0).find(".result-game-item-title-link").attr("href")',
-					prefix: ""
-				},
-				charset: {
-					value: 'gbk',
-					dom: "meta",
-					action: 'attr("charset").split("-").join("")'
-				}
-			}
-		},
-		list: {
-			domRules: {
-				//结果列表
-				lists: {
-					dom: "#main .chapterlist",
-					action: 'find("dt").nextAll()'
-				},
-				sublists: "",
-				//name
-				name: {
-					dom: "a",
-					action: "text()"
-				},
-				info: {
-					dom: "a",
-					action: 'text()'
-				},
-				link: {
-					dom: "a",
-					action: 'attr("href")',
-					prefix: "listlink"
-				},
-				isvip: {
-					dom: "a",
-					//第三方都是非会员
-					action: 'length-1'
-				}
-			}
-		},
-		detail: {
-			domRules: {
-				//结果列表
-				content: {
-					dom: "#BookText",
-					action: 'text()'
-				}
-			}
-		}
-	},
-	_168xs: {
-		name: '一流吧',
-		search: {
-			method: "GET",
-			formData: (ops)=>{
-				return ""
-			},
-			url: (ops)=>{
-				return `http://zhannei.baidu.com/cse/search?s=100040006372621772&ie=gbk&entry=1&q=${ops.name}`;
-			},
-			encodeURI_GBK: true,
-			headers: {},
-			domRules: {
-				link: {
-					dom: "#center .result-list .result-item",
-					action: 'find(".result-item-title a").attr("href")',
-					prefix: ""
-				},
-				charset: {
-					value: 'gbk',
-					dom: "meta[http-equiv='Content-Type']",
-					action: 'attr("content").split("charset=")[1]'
-				}
-			}
-		},
-		list: {
-			domRules: {
-				//结果列表
-				lists: {
-					dom: "#main .chapterlist",
-					action: 'find("dd")'
-				},
-				sublists: "",
-				//name
-				name: {
-					dom: "a",
-					action: "text()"
-				},
-				info: {
-					dom: "a",
-					action: 'text()'
-				},
-				link: {
-					dom: "a",
-					action: 'attr("href")',
-					prefix: "listlink"
-				},
-				isvip: {
-					dom: "a",
-					//第三方都是非会员
-					action: 'length-1'
-				}
-			}
-		},
-		detail: {
-			domRules: {
-				//结果列表
-				content: {
-					dom: "#BookText",
-					action: 'text()'
-				}
-			}
-		}
-	},
-	lwtxt: {
-		name: '乐文小说网',
-		search: {
-			method: "GET",
-			formData: (ops)=>{
-				return ""
-			},
-			url: (ops)=>{
-				return `http://zhannei.baidu.com/cse/search?s=103623352827404213&q=${ops.name}&isNeedCheckDomain=1&jump=1`;
-			},
-			encodeURI: false,
-			//gbk全部要转换成encodeURI_GBK
-			encodeURI_GBK: true,
-			headers: {},
-			domRules: {
-				link: {
-					dom: "#center .result-list .result-item",
-					action: 'find(".result-item-title a").attr("href")',
-					prefix: ""
-				},
-				name: {
-					dom: "#center .result-list .result-item",
-					action: 'find(".result-item-title a").attr("title")',
-				},
-				charset: {
-					value: 'gbk',
-					dom: "meta[http-equiv='Content-Type']",
-					action: 'attr("content").split("charset=")[1]'
-				}
-			}
-		},
-		list: {
-			domRules: {
-				//结果列表
-				lists: {
-					dom: "#defaulthtml4 table",
-					action: 'find("tr")'
-				},
-				sublists: "td",
-				//name
-				name: {
-					dom: "a",
-					action: "text()"
-				},
-				info: {
-					dom: "a",
-					action: 'text()'
-				},
-				link: {
-					dom: "a",
-					action: 'attr("href")',
-					prefix: "listlink"
-				},
-				isvip: {
-					dom: "a",
-					//第三方都是非会员
-					action: 'length-1'
-				}
-			}
-		},
-		detail: {
-			domRules: {
-				//结果列表
-				content: {
-					dom: "#content p",
-					action: 'text()'
-				}
-			}
-		}
-	},
-	yunlaige: {
-		name: '云来阁',
-		search: {
-			method: "POST",
-			formData: (ops)=>{
-				return {searchtype: "articlename",searchkey: ops.name, action:"login", submit: "%26%23160%3B%CB%D1%26%23160%3B%26%23160%3B%CB%F7%26%23160%3B"}
-			},
-			url: (ops)=>{
-				return `http://www.yunlaige.com/modules/article/search.php`;
-			},
-			encodeURI: false,
-			//gbk全部要转换成encodeURI_GBK
-			encodeURI_GBK: true,
-			headers: {},
-			domRules: {
-				link: {
-					dom: "#content .readnow",
-					action: 'attr("href")',
-					prefix: ""
-				},
-				name: {
-					dom: "#content .info h2 a",
-					action: 'text()',
-				},
-				charset: {
-					value: 'gbk',
-					dom: "meta[http-equiv='Content-Type']",
-					action: 'attr("content").split("charset=")[1]'
-				}
-			}
-		},
-		list: {
-			domRules: {
-				//结果列表
-				lists: {
-					dom: "#lcontenttable",
-					action: 'find("tr")'
-				},
-				sublists: "",
-				//name
-				name: {
-					dom: "a",
-					action: "text()"
-				},
-				info: {
-					dom: "a",
-					action: 'text()'
-				},
-				link: {
-					dom: "a",
-					action: 'attr("href")',
-					prefix: "listlink"
-				},
-				isvip: {
-					dom: "a",
-					//第三方都是非会员
-					action: 'length-1'
-				}
-			}
-		},
-		detail: {
-			domRules: {
-				//结果列表
-				content: {
-					dom: "#content",
-					action: 'text()'
-				}
-			}
-		}
-	},
 	aszw: {
 		name: '爱上中文网',
 		search: {
@@ -791,11 +582,28 @@ const rules = {
 				return {searchkey: ops.name, searchtype: "articlename"}
 			},
 			url: (ops)=>{
-				return `http://www.aszw.org/modules/article/search.php`;
+				return `https://www.aszw6.com/modules/article/search.php`;
 			},
 			encodeURI: false,
 			encodeURI_GBK: true,
-			headers: {},
+			headers: () => {
+				const nowTime = parseInt(new Date().getTime() / 1000)
+				return {
+				"Host": "www.aszw6.com",
+				"Connection": "keep-alive",
+				//"Content-Length": 57,
+				"Cache-Control": "max-age=0",
+				"Origin": "https://www.aszw6.com",
+				"Upgrade-Insecure-Requests": 1,
+				"Content-Type": "application/x-www-form-urlencoded",
+				"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36",
+				"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+				"Referer": "https://www.aszw6.com/",
+				//"Accept-Encoding": "gzip",
+				"Accept-Language": "zh-CN,zh;q=0.9",
+				"Cookie": `UM_distinctid=17071330d94328-0e8a170e28ca1f-346f780f-13c680-17071330d95472; CNZZDATA1277837554=2033680273-1582447135-%7C1582447135; jieqiVisitTime=jieqiArticlesearchTime%3D${nowTime}`,
+				}
+			},
 			domRules: {
 				link: {
 					dom: "#content tr",
@@ -859,7 +667,7 @@ const rules = {
 				return `http://www.dhzw.org/modules/article/search.php`;
 			},
 			encodeURI_GBK: true,
-			headers: {Cookie: "UM_distinctid=15f68f26ba223e-0623df1f0a839f-e313761-1fa400-15f68f26ba36e6; bdshare_firstime=1509294240643; jieqiVisitTime=jieqiArticlesearchTime%3D1509460833; CNZZDATA1262002497=1088866520-1509290294-null%7C1509457737; cscpvcouplet_fidx=1; ftcpvrich_fidx=3"},
+			headers: () => {return {Cookie: "UM_distinctid=15f68f26ba223e-0623df1f0a839f-e313761-1fa400-15f68f26ba36e6; bdshare_firstime=1509294240643; jieqiVisitTime=jieqiArticlesearchTime%3D1509460833; CNZZDATA1262002497=1088866520-1509290294-null%7C1509457737; cscpvcouplet_fidx=1; ftcpvrich_fidx=3"}},
 			domRules: {
 				link: {
 					dom: "#newscontent ul li",
@@ -925,7 +733,7 @@ const rules = {
 			},
 			encodeURI: false,
 			encodeURI_GBK: true,
-			headers: {},
+			headers: () => {return {}},
 			domRules: {
 				link: {
 					dom: "#Content #CListTitle",
@@ -980,7 +788,74 @@ const rules = {
 				}
 			}
 		}
-	}
+	},
+	_7dsw: {
+		name: '7度书屋',
+		search: {
+			method: "POST",
+			formData: (ops)=>{
+				return {searchkey: ops.name}
+			},
+			url: (ops)=>{
+				return `https://www.7dsw.com/modules/article/search.php`;
+			},
+			encodeURI: false,
+			encodeURI_GBK: true,
+			headers: () => {
+				return {}
+			},
+			domRules: {
+				link: {
+					dom: "#content tr",
+					action: 'eq(1).find("td").eq(0).children("a").attr("href")',
+					prefix: ""
+				},
+				charset: {
+					value: 'gbk',
+					dom: "meta[http-equiv='Content-Type']",
+					action: 'attr("content").split("charset=")[1]'
+				}
+			}
+		},
+		list: {
+			domRules: {
+				//结果列表
+				lists: {
+					dom: ".readerListBody #at tr",
+					action: 'eq(0).nextAll()'
+				},
+				sublists: "",
+				//name
+				name: {
+					dom: "a",
+					action: "text()"
+				},
+				info: {
+					dom: "a",
+					action: 'text()'
+				},
+				link: {
+					dom: "a",
+					action: 'attr("href")',
+					prefix: "listlink"
+				},
+				isvip: {
+					dom: "a",
+					//第三方都是非会员
+					action: 'length-1'
+				}
+			}
+		},
+		detail: {
+			domRules: {
+				//结果列表
+				content: {
+					dom: "#contents",
+					action: 'text()'
+				}
+			}
+		}
+	},
 }
 
 

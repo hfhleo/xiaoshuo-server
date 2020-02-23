@@ -13,44 +13,28 @@ const Settings = {
         },
         {
             pid: 3,
+            name: "笔趣阁5",
+            type: "bqg5"
+        },
+        {
+            pid: 4,
             name: "求小说",
             type: "qxiaoshuo"
         },
         {
-            pid: 4,
+            pid: 5,
             name: "少年文学",
             type: "snwx"
         },
         {
-            pid: 5,
-            name: "疯狂中文网",
-            type: "fkzww"
-        },
-        {
             pid: 6,
-            name: "八一中文网",
-            type: "_81xsw"
+            name: "七度书屋--post未实现",
+            type: "_7dsw"
         },
-        
         {
             pid: 7,
-            name: "书趣吧--内容少",
-            type: "shuquba"
-        },
-        {
-            pid: 8,
-            name: "乐文小说网--内容少",
-            type: "lwtxt"
-        },
-        {
-            pid: 9,
-            name: "一流吧--内容少",
-            type: "_168xs"
-        },
-        {
-            pid: 10,
-            name: "云来阁--post未实现",
-            type: "yunlaige"
+            name: "手牵手小说-ajax味实现",
+            type: "sqsxs"
         },
         {
             pid: 11,
