@@ -5,15 +5,17 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js",
-    "phantomjs": "node_modules/.bin/phantomjs"
+    "start": "node server.js"
   },
   "author": "leo",
   "license": "ISC",
   "dependencies": {
-    "bcrypt": "^1.0.3",
+    "bcrypt": "^3.0.1",
     "ioredis": "^3.2.2",
+    "koa-session": "^5.8.1",
     "koa-session2": "^2.2.5",
+    "koa-websocket": "^5.0.1",
+    "md5": "^2.2.1",
     "mongoose": "^5.0.1"
   },
   "devDependencies": {
@@ -23,8 +25,6 @@
     "koa": "^2.3.0",
     "koa-bodyparser": "^4.2.0",
     "koa-router": "^7.2.1",
-    "phantom": "^4.0.5",
-    "phantomjs": "^2.1.7+deprecated",
     "request": "^2.83.0",
     "superagent": "^3.6.3",
     "superagent-charset": "^1.2.0",
