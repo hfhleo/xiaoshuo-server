@@ -10,7 +10,7 @@
   "author": "leo",
   "license": "ISC",
   "dependencies": {
-    "bcrypt": "^3.0.1",
+    "bcrypt": "^5.0.0",
     "ioredis": "^3.2.2",
     "koa-session": "^5.8.1",
     "koa-session2": "^2.2.5",
