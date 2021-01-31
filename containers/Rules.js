@@ -251,6 +251,70 @@ const rules = {
 			}
 		}
 	},
+	biquge5200: {
+		name: '笔趣阁-5200',
+		search: {
+			method: "GET",
+			formData: (ops) => {
+				return ""
+			},
+			url: (ops) => {
+				return `https://www.biquge5200.cc/modules/article/search.php?searchkey=${ops.name}`;
+			},
+			encodeURI: false,
+			headers: () => { return {} },
+			domRules: {
+				link: {
+					dom: ".grid tr",
+					action: 'eq(1).children("td").eq(0).find("a").attr("href")',
+					prefix: ""
+				},
+				charset: {
+					value: 'gbk',
+					dom: "meta[http-equiv='Content-Type']",
+					action: 'attr("content").split("charset=")[1]'
+				}
+			}
+		},
+		list: {
+			domRules: {
+				//结果列表
+				lists: {
+					dom: "#list dt",
+					action: 'eq(1).nextAll()'
+				},
+				sublists: "",
+				//name
+				name: {
+					dom: "a",
+					action: "text()"
+				},
+				info: {
+					dom: "a",
+					action: 'text()'
+				},
+				link: {
+					dom: "a",
+					action: 'attr("href")',
+					prefix: ""
+				},
+				isvip: {
+					dom: "a",
+					//第三方都是非会员
+					action: 'length-1'
+				}
+			}
+		},
+		detail: {
+			domRules: {
+				//结果列表
+				content: {
+					dom: "#content",
+					action: 'text()'
+				}
+			}
+		}
+	},
 	smjb: {
 		name: '笔趣阁-smjb',
 		search: {

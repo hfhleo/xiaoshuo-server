@@ -8,6 +8,11 @@ const Settings = {
         },
         {
             pid: 2,
+            name: "笔趣阁-5200",
+            type: "biquge5200"
+        },
+        {
+            pid: 2,
             name: "笔趣阁-smjb",
             type: "smjb"
         },
