@@ -8,31 +8,46 @@ const Settings = {
         },
         {
             pid: 2,
-            name: "笔趣阁",
-            type: "biquge"
+            name: "笔趣阁-smjb",
+            type: "smjb"
         },
         {
             pid: 3,
-            name: "笔趣阁5",
-            type: "bqg5"
+            name: "笔趣阁-beqege",
+            type: "beqege"
         },
         {
             pid: 4,
+            name: "无图小说网",
+            type: "wutuxs"
+        },
+        {
+            pid: 5,
+            name: "落秋中文",
+            type: "luoqiuzw"
+        },
+        {
+            pid: 6,
+            name: "顶点小说-x222xs",
+            type: "x222xs"
+        },
+        {
+            pid: 7,
             name: "求小说",
             type: "qxiaoshuo"
         },
         {
-            pid: 5,
+            pid: 8,
             name: "少年文学",
             type: "snwx"
         },
         {
-            pid: 6,
+            pid: 9,
             name: "七度书屋--post未实现",
             type: "_7dsw"
         },
         {
-            pid: 7,
+            pid: 10,
             name: "手牵手小说-ajax味实现",
             type: "sqsxs"
         },

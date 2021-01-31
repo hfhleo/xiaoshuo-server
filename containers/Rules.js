@@ -251,23 +251,23 @@ const rules = {
 			}
 		}
 	},
-	biquge: {
-		name: '笔趣阁',
+	smjb: {
+		name: '笔趣阁-smjb',
 		search: {
 			method: "GET",
 			formData: (ops)=>{
 				return ""
 			},
 			url: (ops)=>{
-				return `https://www.biquge5200.com/modules/article/search.php?searchkey=${ops.name}`;
+				return `https://www.smjb.net/so/?searchkey=${ops.name}`;
 			},
 			encodeURI: true,
 			headers: () => {return {}},
 			domRules: {
 				link: {
-					dom: ".grid tr",
-					action: 'eq(1).children("td").eq(0).find("a").attr("href")',
-					prefix: ""
+					dom: ".cover",
+					action: 'eq(0).children(".blue").attr("href")',
+					prefix: "https://www.smjb.net"
 				},
 				charset: {
 					value: 'gbk',
@@ -280,8 +280,8 @@ const rules = {
 			domRules: {
 				//结果列表
 				lists: {
-					dom: "#list dl",
-					action: 'find("div").next().nextAll()'
+					dom: "#list dt",
+					action: 'eq(1).nextAll()'
 				},
 				sublists: "",
 				//name
@@ -296,7 +296,7 @@ const rules = {
 				link: {
 					dom: "a",
 					action: 'attr("href")',
-					prefix: ""
+					prefix: "https://www.smjb.net"
 				},
 				isvip: {
 					dom: "a",
@@ -315,26 +315,26 @@ const rules = {
 			}
 		}
 	},
-	bqg5: {
-		name: '笔趣阁5',
+	beqege: {
+		name: '笔趣阁-beqege',
 		search: {
 			method: "GET",
 			formData: (ops)=>{
 				return ""
 			},
 			url: (ops)=>{
-				return `https://www.bqg5.cc/modules/article/search.php?searchkey=${ops.name}`;
+				return `http://www.beqege.cc/search.php?keyword=${ops.name}`;
 			},
 			encodeURI: true,
 			headers: () => {return {}},
 			domRules: {
 				link: {
-					dom: ".grid tr",
-					action: 'eq(1).children("td").eq(0).find("a").attr("href")',
-					prefix: "https://www.bqg5.cc"
+					dom: ".chapter-list li",
+					action: 'eq(0).children(".s2").find("a").attr("href")',
+					prefix: ""
 				},
 				charset: {
-					value: 'gbk',
+					value: 'utf-8',
 					dom: "meta[http-equiv='Content-Type']",
 					action: 'attr("content").split("charset=")[1]'
 				}
@@ -345,7 +345,7 @@ const rules = {
 				//结果列表
 				lists: {
 					dom: "#list dl",
-					action: 'find("div").next().nextAll()'
+					action: 'find("dd")'
 				},
 				sublists: "",
 				//name
@@ -360,7 +360,204 @@ const rules = {
 				link: {
 					dom: "a",
 					action: 'attr("href")',
-					prefix: "https://www.bqg5.cc"
+					prefix: "http://www.beqege.cc"
+				},
+				isvip: {
+					dom: "a",
+					//第三方都是非会员
+					action: 'length-1'
+				}
+			}
+		},
+		detail: {
+			domRules: {
+				//结果列表
+				content: {
+					dom: "#content",
+					action: 'text()'
+				}
+			}
+		}
+	},
+	wutuxs: {
+		name: '无图小说网',
+		search: {
+			method: "POST",
+			formData: (ops) => {
+				return {
+					searchtype: "articlename",
+					searchkey: ops.name,
+				}
+			},
+			url: (ops) => {
+				return `http://www.wutuxs.com/modules/article/search.php`;
+			},
+			encodeURI: true,
+			headers: () => { return {} },
+			domRules: {
+				link: {
+					dom: ".grid tr",
+					action: 'eq(1).children("td").find("a").attr("href")',
+					prefix: ""
+				},
+				charset: {
+					value: 'gbk',
+					dom: "meta[http-equiv='Content-Type']",
+					action: 'attr("content").split("charset=")[1]'
+				}
+			}
+		},
+		list: {
+			domRules: {
+				//结果列表
+				lists: {
+					dom: "#at",
+					action: 'find("td")'
+				},
+				sublists: "",
+				//name
+				name: {
+					dom: "a",
+					action: "text()"
+				},
+				info: {
+					dom: "a",
+					action: 'text()'
+				},
+				link: {
+					dom: "a",
+					action: 'attr("href")',
+					prefix: "http://www.wutuxs.com"
+				},
+				isvip: {
+					dom: "a",
+					//第三方都是非会员
+					action: 'length-1'
+				}
+			}
+		},
+		detail: {
+			domRules: {
+				//结果列表
+				content: {
+					dom: "#contents",
+					action: 'text()'
+				}
+			}
+		}
+	},
+	luoqiuzw: {
+		name: '落秋中文',
+		search: {
+			method: "GET",
+			formData: (ops) => {
+				return ""
+			},
+			url: (ops) => {
+				return `https://www.luoqiuzw.com/search?keyword=${ops.name}`;
+			},
+			encodeURI: false,
+			headers: () => { return {} },
+			domRules: {
+				link: {
+					dom: ".novelslist2 li",
+					action: 'eq(1).children("span").eq(1).find("a").attr("href")',
+					prefix: "https://www.luoqiuzw.com"
+				},
+				charset: {
+					value: 'utf-8',
+					// dom: "meta[http-equiv='Content-Type']",
+					// action: 'attr("content").split("charset=")[1]'
+				}
+			}
+		},
+		list: {
+			domRules: {
+				//结果列表
+				lists: {
+					dom: "#list dt",
+					action: 'eq(1).nextAll()'
+				},
+				sublists: "",
+				//name
+				name: {
+					dom: "a",
+					action: "text()"
+				},
+				info: {
+					dom: "a",
+					action: 'text()'
+				},
+				link: {
+					dom: "a",
+					action: 'attr("href")',
+					prefix: "https://www.luoqiuzw.com"
+				},
+				isvip: {
+					dom: "a",
+					//第三方都是非会员
+					action: 'length-1'
+				}
+			}
+		},
+		detail: {
+			domRules: {
+				//结果列表
+				content: {
+					dom: "#content",
+					action: 'text()'
+				}
+			}
+		}
+	},
+	x222xs: {
+		name: '顶点小说',
+		search: {
+			method: "POST",
+			formData: (ops) => {
+				return {
+					searchkey: ops.name
+				}
+			},
+			url: (ops) => {
+				return `https://www.x222xs.com/s.php`;
+			},
+			encodeURI: false,
+			headers: () => { return {} },
+			domRules: {
+				link: {
+					dom: ".grid tr",
+					action: 'eq(1).children("td").eq(0).find("a").attr("href")',
+					prefix: "https://www.x222xs.com"
+				},
+				charset: {
+					value: 'utf-8',
+					dom: "meta[http-equiv='Content-Type']",
+					action: 'attr("content").split("charset=")[1]'
+				}
+			}
+		},
+		list: {
+			domRules: {
+				//结果列表
+				lists: {
+					dom: "#list ul",
+					action: 'find("li")'
+				},
+				sublists: "",
+				//name
+				name: {
+					dom: "a",
+					action: "text()"
+				},
+				info: {
+					dom: "a",
+					action: 'text()'
+				},
+				link: {
+					dom: "a",
+					action: 'attr("href")',
+					prefix: "https://www.x222xs.com"
 				},
 				isvip: {
 					dom: "a",
